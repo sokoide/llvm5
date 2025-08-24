@@ -4,6 +4,139 @@
 
 The StaticLang compiler follows **Clean Architecture** principles with clear separation of concerns across multiple layers. The architecture is designed to be maintainable, testable, and extensible.
 
+## StaticLang Language Syntax
+
+### Basic Data Types
+
+StaticLang supports the following basic data types:
+
+- `int` - Integer type
+- `float` - Floating-point type
+- `string` - String type
+- `bool` - Boolean type
+
+### Function Declarations
+
+Functions are declared using the following syntax:
+
+```go
+func functionName(param1 int, param2 string) -> int {
+    // Function body
+    return result;
+}
+
+// Without parameters
+func functionName() -> int {
+    return 42;
+}
+
+// Without return type (defaults to int)
+func functionName(param int) {
+    // Processing code
+}
+```
+
+### Variable Declarations
+
+Variables are declared as follows:
+
+```go
+// Without initialization
+var x int;
+var message string;
+
+// With initialization
+var x int = 42;
+var pi float = 3.14;
+var name string = "Hello";
+```
+
+### Control Structures
+
+#### Conditional Statements
+```go
+if (condition) {
+    // Code executed when condition is true
+} else {
+    // Code executed when condition is false
+}
+```
+
+#### Loops
+```go
+// while loop
+while (condition) {
+    // Loop body
+}
+
+// for loop
+for (var i int = 0; i < 10; i = i + 1) {
+    // Loop body
+}
+```
+
+### Expressions and Operators
+
+#### Arithmetic Operators
+- `+` (Addition)
+- `-` (Subtraction)
+- `*` (Multiplication)
+- `/` (Division)
+- `%` (Modulo)
+
+#### Comparison Operators
+- `==` (Equal to)
+- `!=` (Not equal to)
+- `<` (Less than)
+- `>` (Greater than)
+- `<=` (Less than or equal to)
+- `>=` (Greater than or equal to)
+
+#### Logical Operators
+- `&&` (Logical AND)
+- `||` (Logical OR)
+- `!` (Logical NOT)
+
+### Structs and Arrays
+
+```go
+// Struct definition
+struct Person {
+    name string;
+    age int;
+    height float;
+}
+
+// Struct usage
+var person Person;
+person.name = "John";
+person.age = 30;
+
+// Arrays
+var numbers [5]int;
+var dynamicArray []int;
+numbers[0] = 10;
+
+// Struct member access
+var age int = person.age;
+```
+
+### Function Calls
+
+```go
+// Function call
+var result int = fibonacci(10);
+
+// Recursion
+func fibonacci(n int) -> int {
+    if (n <= 1) {
+        return n;
+    } else {
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+}
+```
+
 ## Layer Architecture
 
 ```mermaid
@@ -103,7 +236,7 @@ Input Source → Lexer → Parser → Semantic Analyzer → Code Generator → L
 
 #### Lexer
 - `NextToken()` - Returns the next token from input
-- `SetInput(filename, reader)` - Sets input source  
+- `SetInput(filename, reader)` - Sets input source
 - Handles source position tracking
 - **Token Classification**: Type keywords (`int`, `string`, etc.) are treated as identifiers and resolved by the type system, not as special tokens
 
