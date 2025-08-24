@@ -41,11 +41,12 @@ import (
 %token <token> ASSIGN
 %token <token> LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE LEFT_BRACKET RIGHT_BRACKET
 %token <token> SEMICOLON COMMA DOT COLON
+%token <token> ARROW
 %token <token> EOF
 
 // Non-terminal types
 %type <program> program
-%type <decl> declaration function_decl struct_decl
+%type <decl> declaration function_decl struct_decl global_var_decl main_function
 %type <decls> declaration_list
 %type <stmt> statement var_decl_stmt assign_stmt if_stmt while_stmt for_stmt return_stmt expr_stmt block_stmt
 %type <stmts> statement_list
@@ -57,6 +58,10 @@ import (
 %type <fields> struct_field_list
 %type <typ> type
 %type <str> identifier
+
+// Token precedence for dangling else resolution
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 // Operator precedence (lowest to highest)
 %left OR
@@ -94,28 +99,77 @@ declaration_list:
 	}
 
 declaration:
-	function_decl { $$ = $1 }
-	| struct_decl { $$ = $1 }
+ 	function_decl { $$ = $1 }
+ 	| struct_decl { $$ = $1 }
+ 	| global_var_decl { $$ = $1 }
+ 	| main_function { $$ = $1 }
+
+global_var_decl:
+ 	type identifier SEMICOLON {
+ 		$$ = &domain.VarDeclStmt{
+ 			BaseNode:    domain.BaseNode{Location: $1.GetLocation()},
+ 			Name:        $2,
+ 			Type_:       $1,
+ 			Initializer: nil,
+ 		}
+ 	}
+ 	| type identifier ASSIGN expression SEMICOLON {
+ 		$$ = &domain.VarDeclStmt{
+ 			BaseNode:    domain.BaseNode{Location: $1.GetLocation()},
+ 			Name:        $2,
+ 			Type_:       $1,
+ 			Initializer: $4,
+ 		}
+ 	}
+
+main_function:
+ 	type identifier LEFT_PAREN RIGHT_PAREN block_stmt {
+ 		$$ = &domain.FunctionDecl{
+ 			BaseNode:   domain.BaseNode{Location: $1.GetLocation()},
+ 			Name:       $2,
+ 			Parameters: []domain.Parameter{},
+ 			ReturnType: $1,
+ 			Body:       $5.(*domain.BlockStmt),
+ 		}
+ 	}
 
 function_decl:
-	FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt {
-		$$ = &domain.FunctionDecl{
-			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:       $2,
-			Parameters: $4,
-			ReturnType: $6,
-			Body:       $7.(*domain.BlockStmt),
-		}
-	}
-	| FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt {
-		$$ = &domain.FunctionDecl{
-			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:       $2,
-			Parameters: []domain.Parameter{},
-			ReturnType: $5,
-			Body:       $6.(*domain.BlockStmt),
-		}
-	}
+ 	FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt {
+ 		$$ = &domain.FunctionDecl{
+ 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+ 			Name:       $2,
+ 			Parameters: $4,
+ 			ReturnType: $6,
+ 			Body:       $7.(*domain.BlockStmt),
+ 		}
+ 	}
+ 	| FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt {
+ 		$$ = &domain.FunctionDecl{
+ 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+ 			Name:       $2,
+ 			Parameters: []domain.Parameter{},
+ 			ReturnType: $5,
+ 			Body:       $6.(*domain.BlockStmt),
+ 		}
+ 	}
+ 	| FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt {
+ 		$$ = &domain.FunctionDecl{
+ 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+ 			Name:       $2,
+ 			Parameters: $4,
+ 			ReturnType: $7,
+ 			Body:       $8.(*domain.BlockStmt),
+ 		}
+ 	}
+ 	| FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt {
+ 		$$ = &domain.FunctionDecl{
+ 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+ 			Name:       $2,
+ 			Parameters: []domain.Parameter{},
+ 			ReturnType: $6,
+ 			Body:       $7.(*domain.BlockStmt),
+ 		}
+ 	}
 
 struct_decl:
 	STRUCT identifier LEFT_BRACE struct_field_list RIGHT_BRACE {
@@ -234,14 +288,14 @@ assign_stmt:
 	}
 
 if_stmt:
-	IF LEFT_PAREN expression RIGHT_PAREN statement {
-		$$ = &domain.IfStmt{
-			BaseNode:  domain.BaseNode{Location: getLocationFromToken($1)},
-			Condition: $3,
-			ThenStmt:  $5,
-			ElseStmt:  nil,
-		}
-	}
+  IF LEFT_PAREN expression RIGHT_PAREN statement %prec LOWER_THAN_ELSE {
+    $$ = &domain.IfStmt{
+      BaseNode:  domain.BaseNode{Location: getLocationFromToken($1)},
+      Condition: $3,
+      ThenStmt:  $5,
+      ElseStmt:  nil,
+    }
+  }
 	| IF LEFT_PAREN expression RIGHT_PAREN statement ELSE statement {
 		$$ = &domain.IfStmt{
 			BaseNode:  domain.BaseNode{Location: getLocationFromToken($1)},

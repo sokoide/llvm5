@@ -28,21 +28,22 @@ type StaticLangLexer struct {
 
 // Keywords maps keyword strings to their token types
 var keywords = map[string]interfaces.TokenType{
-	"func":   interfaces.TokenFunc,
-	"struct": interfaces.TokenStruct,
-	"var":    interfaces.TokenVar,
-	"if":     interfaces.TokenIf,
-	"else":   interfaces.TokenElse,
-	"while":  interfaces.TokenWhile,
-	"for":    interfaces.TokenFor,
-	"return": interfaces.TokenReturn,
-	"true":   interfaces.TokenTrue,
-	"false":  interfaces.TokenFalse,
-	"int":    interfaces.TokenInt,
-	"double": interfaces.TokenFloat,
-	"string": interfaces.TokenString,
-	"bool":   interfaces.TokenBool,
-	"print":  interfaces.TokenIdentifier, // Built-in function
+	"func":    interfaces.TokenFunc,
+	"function": interfaces.TokenFunc, // Alternative syntax
+	"struct":  interfaces.TokenStruct,
+	"var":     interfaces.TokenVar,
+	"if":      interfaces.TokenIf,
+	"else":    interfaces.TokenElse,
+	"while":   interfaces.TokenWhile,
+	"for":     interfaces.TokenFor,
+	"return":  interfaces.TokenReturn,
+	"true":    interfaces.TokenTrue,
+	"false":   interfaces.TokenFalse,
+	"int":     interfaces.TokenInt,
+	"double":  interfaces.TokenFloat,
+	"string":  interfaces.TokenString,
+	"bool":    interfaces.TokenBool,
+	"print":   interfaces.TokenIdentifier, // Built-in function
 }
 
 // NewLexer creates a new StaticLang lexer
@@ -103,6 +104,11 @@ func (l *StaticLangLexer) NextToken() interfaces.Token {
 		l.advance()
 		return interfaces.Token{Type: interfaces.TokenPlus, Value: "+", Location: position}
 	case '-':
+		if l.next == '>' {
+			l.advance()
+			l.advance()
+			return interfaces.Token{Type: interfaces.TokenArrow, Value: "->", Location: position}
+		}
 		l.advance()
 		return interfaces.Token{Type: interfaces.TokenMinus, Value: "-", Location: position}
 	case '*':
@@ -482,6 +488,8 @@ func TokenTypeString(t interfaces.TokenType) string {
 		return "DOT"
 	case interfaces.TokenColon:
 		return "COLON"
+	case interfaces.TokenArrow:
+		return "ARROW"
 	case interfaces.TokenEOF:
 		return "EOF"
 	case interfaces.TokenError:

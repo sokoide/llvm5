@@ -3,15 +3,21 @@ state 0
 	$accept: .program $end 
 	program: .    (2)
 
-	FUNC  shift 6
-	STRUCT  shift 7
-	.  reduce 2 (src line 80)
+	IDENTIFIER  shift 13
+	FUNC  shift 8
+	STRUCT  shift 9
+	LEFT_BRACKET  shift 12
+	.  reduce 2 (src line 85)
 
 	program  goto 1
 	declaration  goto 3
 	function_decl  goto 4
 	struct_decl  goto 5
+	global_var_decl  goto 6
+	main_function  goto 7
 	declaration_list  goto 2
+	type  goto 10
+	identifier  goto 11
 
 state 1
 	$accept:  program.$end 
@@ -24,489 +30,309 @@ state 2
 	program:  declaration_list.    (1)
 	declaration_list:  declaration_list.declaration 
 
-	FUNC  shift 6
-	STRUCT  shift 7
-	.  reduce 1 (src line 72)
+	IDENTIFIER  shift 13
+	FUNC  shift 8
+	STRUCT  shift 9
+	LEFT_BRACKET  shift 12
+	.  reduce 1 (src line 77)
 
-	declaration  goto 8
+	declaration  goto 14
 	function_decl  goto 4
 	struct_decl  goto 5
+	global_var_decl  goto 6
+	main_function  goto 7
+	type  goto 10
+	identifier  goto 11
 
 state 3
 	declaration_list:  declaration.    (3)
 
-	.  reduce 3 (src line 88)
+	.  reduce 3 (src line 93)
 
 
 state 4
 	declaration:  function_decl.    (5)
 
-	.  reduce 5 (src line 96)
+	.  reduce 5 (src line 101)
 
 
 state 5
 	declaration:  struct_decl.    (6)
 
-	.  reduce 6 (src line 98)
+	.  reduce 6 (src line 103)
 
 
 state 6
-	function_decl:  FUNC.identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt 
-	function_decl:  FUNC.identifier LEFT_PAREN RIGHT_PAREN type block_stmt 
+	declaration:  global_var_decl.    (7)
 
-	IDENTIFIER  shift 10
-	.  error
+	.  reduce 7 (src line 104)
 
-	identifier  goto 9
 
 state 7
+	declaration:  main_function.    (8)
+
+	.  reduce 8 (src line 105)
+
+
+state 8
+	function_decl:  FUNC.identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC.identifier LEFT_PAREN RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC.identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt 
+	function_decl:  FUNC.identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt 
+
+	IDENTIFIER  shift 13
+	.  error
+
+	identifier  goto 15
+
+state 9
 	struct_decl:  STRUCT.identifier LEFT_BRACE struct_field_list RIGHT_BRACE 
 	struct_decl:  STRUCT.identifier LEFT_BRACE RIGHT_BRACE 
 
-	IDENTIFIER  shift 10
+	IDENTIFIER  shift 13
 	.  error
 
-	identifier  goto 11
-
-state 8
-	declaration_list:  declaration_list declaration.    (4)
-
-	.  reduce 4 (src line 92)
-
-
-state 9
-	function_decl:  FUNC identifier.LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt 
-	function_decl:  FUNC identifier.LEFT_PAREN RIGHT_PAREN type block_stmt 
-
-	LEFT_PAREN  shift 12
-	.  error
-
+	identifier  goto 16
 
 state 10
-	identifier:  IDENTIFIER.    (75)
+	global_var_decl:  type.identifier SEMICOLON 
+	global_var_decl:  type.identifier ASSIGN expression SEMICOLON 
+	main_function:  type.identifier LEFT_PAREN RIGHT_PAREN block_stmt 
 
-	.  reduce 75 (src line 528)
+	IDENTIFIER  shift 13
+	.  error
 
+	identifier  goto 17
 
 state 11
-	struct_decl:  STRUCT identifier.LEFT_BRACE struct_field_list RIGHT_BRACE 
-	struct_decl:  STRUCT identifier.LEFT_BRACE RIGHT_BRACE 
+	type:  identifier.    (24)
 
-	LEFT_BRACE  shift 13
-	.  error
+	.  reduce 24 (src line 222)
 
 
 state 12
-	function_decl:  FUNC identifier LEFT_PAREN.parameter_list RIGHT_PAREN type block_stmt 
-	function_decl:  FUNC identifier LEFT_PAREN.RIGHT_PAREN type block_stmt 
-
-	IDENTIFIER  shift 10
-	RIGHT_PAREN  shift 15
-	.  error
-
-	parameter  goto 16
-	parameter_list  goto 14
-	identifier  goto 17
-
-state 13
-	struct_decl:  STRUCT identifier LEFT_BRACE.struct_field_list RIGHT_BRACE 
-	struct_decl:  STRUCT identifier LEFT_BRACE.RIGHT_BRACE 
-
-	IDENTIFIER  shift 10
-	RIGHT_BRACE  shift 19
-	.  error
-
-	struct_field  goto 20
-	struct_field_list  goto 18
-	identifier  goto 21
-
-state 14
-	function_decl:  FUNC identifier LEFT_PAREN parameter_list.RIGHT_PAREN type block_stmt 
-	parameter_list:  parameter_list.COMMA parameter 
-
-	RIGHT_PAREN  shift 22
-	COMMA  shift 23
-	.  error
-
-
-state 15
-	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN.type block_stmt 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 24
-	identifier  goto 25
-
-state 16
-	parameter_list:  parameter.    (11)
-
-	.  reduce 11 (src line 136)
-
-
-state 17
-	parameter:  identifier.type 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 27
-	identifier  goto 25
-
-state 18
-	struct_decl:  STRUCT identifier LEFT_BRACE struct_field_list.RIGHT_BRACE 
-	struct_field_list:  struct_field_list.struct_field 
-
-	IDENTIFIER  shift 10
-	RIGHT_BRACE  shift 28
-	.  error
-
-	struct_field  goto 29
-	identifier  goto 21
-
-state 19
-	struct_decl:  STRUCT identifier LEFT_BRACE RIGHT_BRACE.    (10)
-
-	.  reduce 10 (src line 128)
-
-
-state 20
-	struct_field_list:  struct_field.    (14)
-
-	.  reduce 14 (src line 152)
-
-
-state 21
-	struct_field:  identifier.type SEMICOLON 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 30
-	identifier  goto 25
-
-state 22
-	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN.type block_stmt 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 31
-	identifier  goto 25
-
-state 23
-	parameter_list:  parameter_list COMMA.parameter 
-
-	IDENTIFIER  shift 10
-	.  error
-
-	parameter  goto 32
-	identifier  goto 17
-
-state 24
-	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN type.block_stmt 
-
-	LEFT_BRACE  shift 34
-	.  error
-
-	block_stmt  goto 33
-
-state 25
-	type:  identifier.    (17)
-
-	.  reduce 17 (src line 168)
-
-
-state 26
 	type:  LEFT_BRACKET.INT RIGHT_BRACKET type 
 	type:  LEFT_BRACKET.RIGHT_BRACKET type 
 
-	INT  shift 35
-	RIGHT_BRACKET  shift 36
+	INT  shift 18
+	RIGHT_BRACKET  shift 19
 	.  error
+
+
+state 13
+	identifier:  IDENTIFIER.    (82)
+
+	.  reduce 82 (src line 582)
+
+
+state 14
+	declaration_list:  declaration_list declaration.    (4)
+
+	.  reduce 4 (src line 97)
+
+
+state 15
+	function_decl:  FUNC identifier.LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC identifier.LEFT_PAREN RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC identifier.LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt 
+	function_decl:  FUNC identifier.LEFT_PAREN RIGHT_PAREN ARROW type block_stmt 
+
+	LEFT_PAREN  shift 20
+	.  error
+
+
+state 16
+	struct_decl:  STRUCT identifier.LEFT_BRACE struct_field_list RIGHT_BRACE 
+	struct_decl:  STRUCT identifier.LEFT_BRACE RIGHT_BRACE 
+
+	LEFT_BRACE  shift 21
+	.  error
+
+
+state 17
+	global_var_decl:  type identifier.SEMICOLON 
+	global_var_decl:  type identifier.ASSIGN expression SEMICOLON 
+	main_function:  type identifier.LEFT_PAREN RIGHT_PAREN block_stmt 
+
+	ASSIGN  shift 23
+	LEFT_PAREN  shift 24
+	SEMICOLON  shift 22
+	.  error
+
+
+state 18
+	type:  LEFT_BRACKET INT.RIGHT_BRACKET type 
+
+	RIGHT_BRACKET  shift 25
+	.  error
+
+
+state 19
+	type:  LEFT_BRACKET RIGHT_BRACKET.type 
+
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	.  error
+
+	type  goto 26
+	identifier  goto 11
+
+state 20
+	function_decl:  FUNC identifier LEFT_PAREN.parameter_list RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN.RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN.parameter_list RIGHT_PAREN ARROW type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN.RIGHT_PAREN ARROW type block_stmt 
+
+	IDENTIFIER  shift 13
+	RIGHT_PAREN  shift 28
+	.  error
+
+	parameter  goto 29
+	parameter_list  goto 27
+	identifier  goto 30
+
+state 21
+	struct_decl:  STRUCT identifier LEFT_BRACE.struct_field_list RIGHT_BRACE 
+	struct_decl:  STRUCT identifier LEFT_BRACE.RIGHT_BRACE 
+
+	IDENTIFIER  shift 13
+	RIGHT_BRACE  shift 32
+	.  error
+
+	struct_field  goto 33
+	struct_field_list  goto 31
+	identifier  goto 34
+
+state 22
+	global_var_decl:  type identifier SEMICOLON.    (9)
+
+	.  reduce 9 (src line 107)
+
+
+state 23
+	global_var_decl:  type identifier ASSIGN.expression SEMICOLON 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	.  error
+
+	expression  goto 35
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 24
+	main_function:  type identifier LEFT_PAREN.RIGHT_PAREN block_stmt 
+
+	RIGHT_PAREN  shift 49
+	.  error
+
+
+state 25
+	type:  LEFT_BRACKET INT RIGHT_BRACKET.type 
+
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	.  error
+
+	type  goto 50
+	identifier  goto 11
+
+state 26
+	type:  LEFT_BRACKET RIGHT_BRACKET type.    (26)
+
+	.  reduce 26 (src line 238)
 
 
 state 27
-	parameter:  identifier type.    (13)
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list.RIGHT_PAREN type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list.RIGHT_PAREN ARROW type block_stmt 
+	parameter_list:  parameter_list.COMMA parameter 
 
-	.  reduce 13 (src line 144)
+	RIGHT_PAREN  shift 51
+	COMMA  shift 52
+	.  error
 
 
 state 28
-	struct_decl:  STRUCT identifier LEFT_BRACE struct_field_list RIGHT_BRACE.    (9)
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN.type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN.ARROW type block_stmt 
 
-	.  reduce 9 (src line 120)
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	ARROW  shift 54
+	.  error
 
+	type  goto 53
+	identifier  goto 11
 
 state 29
-	struct_field_list:  struct_field_list struct_field.    (15)
+	parameter_list:  parameter.    (18)
 
-	.  reduce 15 (src line 156)
+	.  reduce 18 (src line 190)
 
 
 state 30
-	struct_field:  identifier type.SEMICOLON 
+	parameter:  identifier.type 
 
-	SEMICOLON  shift 37
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
 	.  error
 
+	type  goto 55
+	identifier  goto 11
 
 state 31
-	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type.block_stmt 
+	struct_decl:  STRUCT identifier LEFT_BRACE struct_field_list.RIGHT_BRACE 
+	struct_field_list:  struct_field_list.struct_field 
 
-	LEFT_BRACE  shift 34
+	IDENTIFIER  shift 13
+	RIGHT_BRACE  shift 56
 	.  error
 
-	block_stmt  goto 38
+	struct_field  goto 57
+	identifier  goto 34
 
 state 32
-	parameter_list:  parameter_list COMMA parameter.    (12)
+	struct_decl:  STRUCT identifier LEFT_BRACE RIGHT_BRACE.    (17)
 
-	.  reduce 12 (src line 140)
+	.  reduce 17 (src line 182)
 
 
 state 33
-	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt.    (8)
+	struct_field_list:  struct_field.    (21)
 
-	.  reduce 8 (src line 110)
+	.  reduce 21 (src line 206)
 
 
 state 34
-	block_stmt:  LEFT_BRACE.statement_list RIGHT_BRACE 
-	block_stmt:  LEFT_BRACE.RIGHT_BRACE 
+	struct_field:  identifier.type SEMICOLON 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
-	RIGHT_BRACE  shift 40
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
 	.  error
 
-	statement  goto 41
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	statement_list  goto 39
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	type  goto 58
+	identifier  goto 11
 
 state 35
-	type:  LEFT_BRACKET INT.RIGHT_BRACKET type 
+	global_var_decl:  type identifier ASSIGN expression.SEMICOLON 
 
-	RIGHT_BRACKET  shift 69
+	SEMICOLON  shift 59
 	.  error
 
 
 state 36
-	type:  LEFT_BRACKET RIGHT_BRACKET.type 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 70
-	identifier  goto 25
-
-state 37
-	struct_field:  identifier type SEMICOLON.    (16)
-
-	.  reduce 16 (src line 160)
-
-
-state 38
-	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt.    (7)
-
-	.  reduce 7 (src line 100)
-
-
-state 39
-	statement_list:  statement_list.statement 
-	block_stmt:  LEFT_BRACE statement_list.RIGHT_BRACE 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
-	RIGHT_BRACE  shift 72
-	.  error
-
-	statement  goto 71
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 40
-	block_stmt:  LEFT_BRACE RIGHT_BRACE.    (42)
-
-	.  reduce 42 (src line 312)
-
-
-state 41
-	statement_list:  statement.    (20)
-
-	.  reduce 20 (src line 191)
-
-
-state 42
-	statement:  var_decl_stmt.    (22)
-
-	.  reduce 22 (src line 199)
-
-
-state 43
-	statement:  assign_stmt.    (23)
-
-	.  reduce 23 (src line 201)
-
-
-state 44
-	statement:  if_stmt.    (24)
-
-	.  reduce 24 (src line 202)
-
-
-state 45
-	statement:  while_stmt.    (25)
-
-	.  reduce 25 (src line 203)
-
-
-state 46
-	statement:  for_stmt.    (26)
-
-	.  reduce 26 (src line 204)
-
-
-state 47
-	statement:  return_stmt.    (27)
-
-	.  reduce 27 (src line 205)
-
-
-state 48
-	statement:  expr_stmt.    (28)
-
-	.  reduce 28 (src line 206)
-
-
-state 49
-	statement:  block_stmt.    (29)
-
-	.  reduce 29 (src line 207)
-
-
-state 50
-	var_decl_stmt:  VAR.identifier type SEMICOLON 
-	var_decl_stmt:  VAR.identifier type ASSIGN expression SEMICOLON 
-
-	IDENTIFIER  shift 10
-	.  error
-
-	identifier  goto 73
-
-state 51
-	assign_stmt:  expression.ASSIGN expression SEMICOLON 
-	expr_stmt:  expression.SEMICOLON 
-
-	ASSIGN  shift 74
-	SEMICOLON  shift 75
-	.  error
-
-
-state 52
-	if_stmt:  IF.LEFT_PAREN expression RIGHT_PAREN statement 
-	if_stmt:  IF.LEFT_PAREN expression RIGHT_PAREN statement ELSE statement 
-
-	LEFT_PAREN  shift 76
-	.  error
-
-
-state 53
-	while_stmt:  WHILE.LEFT_PAREN expression RIGHT_PAREN statement 
-
-	LEFT_PAREN  shift 77
-	.  error
-
-
-state 54
-	for_stmt:  FOR.LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN statement 
-	for_stmt:  FOR.LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement 
-
-	LEFT_PAREN  shift 78
-	.  error
-
-
-state 55
-	return_stmt:  RETURN.SEMICOLON 
-	return_stmt:  RETURN.expression SEMICOLON 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	SEMICOLON  shift 79
-	.  error
-
-	expression  goto 80
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 56
-	expression:  binary_expr.    (43)
+	expression:  binary_expr.    (50)
 	binary_expr:  binary_expr.PLUS binary_expr 
 	binary_expr:  binary_expr.MINUS binary_expr 
 	binary_expr:  binary_expr.STAR binary_expr 
@@ -521,1481 +347,1819 @@ state 56
 	binary_expr:  binary_expr.AND binary_expr 
 	binary_expr:  binary_expr.OR binary_expr 
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	EQUAL  shift 86
-	NOT_EQUAL  shift 87
-	LESS  shift 88
-	LESS_EQUAL  shift 89
-	GREATER  shift 90
-	GREATER_EQUAL  shift 91
-	AND  shift 92
-	OR  shift 93
-	.  reduce 43 (src line 319)
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	EQUAL  shift 65
+	NOT_EQUAL  shift 66
+	LESS  shift 67
+	LESS_EQUAL  shift 68
+	GREATER  shift 69
+	GREATER_EQUAL  shift 70
+	AND  shift 71
+	OR  shift 72
+	.  reduce 50 (src line 373)
 
 
-state 57
-	binary_expr:  unary_expr.    (44)
+state 37
+	binary_expr:  unary_expr.    (51)
 
-	.  reduce 44 (src line 322)
+	.  reduce 51 (src line 376)
 
 
-state 58
-	unary_expr:  call_expr.    (58)
+state 38
+	unary_expr:  call_expr.    (65)
 	call_expr:  call_expr.LEFT_PAREN argument_list RIGHT_PAREN 
 	call_expr:  call_expr.LEFT_PAREN RIGHT_PAREN 
 	call_expr:  call_expr.LEFT_BRACKET expression RIGHT_BRACKET 
 	call_expr:  call_expr.DOT identifier 
 
-	LEFT_PAREN  shift 94
-	LEFT_BRACKET  shift 95
-	DOT  shift 96
-	.  reduce 58 (src line 429)
+	LEFT_PAREN  shift 73
+	LEFT_BRACKET  shift 74
+	DOT  shift 75
+	.  reduce 65 (src line 483)
+
+
+state 39
+	unary_expr:  MINUS.unary_expr 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	.  error
+
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 76
+	identifier  goto 42
+
+state 40
+	unary_expr:  NOT.unary_expr 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	.  error
+
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 77
+	identifier  goto 42
+
+state 41
+	call_expr:  primary_expr.    (68)
+
+	.  reduce 68 (src line 500)
+
+
+state 42
+	primary_expr:  identifier.    (75)
+
+	.  reduce 75 (src line 539)
+
+
+state 43
+	primary_expr:  INT.    (76)
+
+	.  reduce 76 (src line 546)
+
+
+state 44
+	primary_expr:  FLOAT.    (77)
+
+	.  reduce 77 (src line 553)
+
+
+state 45
+	primary_expr:  STRING.    (78)
+
+	.  reduce 78 (src line 560)
+
+
+state 46
+	primary_expr:  TRUE.    (79)
+
+	.  reduce 79 (src line 566)
+
+
+state 47
+	primary_expr:  FALSE.    (80)
+
+	.  reduce 80 (src line 572)
+
+
+state 48
+	primary_expr:  LEFT_PAREN.expression RIGHT_PAREN 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	.  error
+
+	expression  goto 78
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 49
+	main_function:  type identifier LEFT_PAREN RIGHT_PAREN.block_stmt 
+
+	LEFT_BRACE  shift 80
+	.  error
+
+	block_stmt  goto 79
+
+state 50
+	type:  LEFT_BRACKET INT RIGHT_BRACKET type.    (25)
+
+	.  reduce 25 (src line 231)
+
+
+state 51
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN.type block_stmt 
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN.ARROW type block_stmt 
+
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	ARROW  shift 82
+	.  error
+
+	type  goto 81
+	identifier  goto 11
+
+state 52
+	parameter_list:  parameter_list COMMA.parameter 
+
+	IDENTIFIER  shift 13
+	.  error
+
+	parameter  goto 83
+	identifier  goto 30
+
+state 53
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN type.block_stmt 
+
+	LEFT_BRACE  shift 80
+	.  error
+
+	block_stmt  goto 84
+
+state 54
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW.type block_stmt 
+
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	.  error
+
+	type  goto 85
+	identifier  goto 11
+
+state 55
+	parameter:  identifier type.    (20)
+
+	.  reduce 20 (src line 198)
+
+
+state 56
+	struct_decl:  STRUCT identifier LEFT_BRACE struct_field_list RIGHT_BRACE.    (16)
+
+	.  reduce 16 (src line 174)
+
+
+state 57
+	struct_field_list:  struct_field_list struct_field.    (22)
+
+	.  reduce 22 (src line 210)
+
+
+state 58
+	struct_field:  identifier type.SEMICOLON 
+
+	SEMICOLON  shift 86
+	.  error
 
 
 state 59
-	unary_expr:  MINUS.unary_expr 
+	global_var_decl:  type identifier ASSIGN expression SEMICOLON.    (10)
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
+	.  reduce 10 (src line 116)
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 97
-	identifier  goto 62
 
 state 60
-	unary_expr:  NOT.unary_expr 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
-
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 98
-	identifier  goto 62
-
-state 61
-	call_expr:  primary_expr.    (61)
-
-	.  reduce 61 (src line 446)
-
-
-state 62
-	primary_expr:  identifier.    (68)
-
-	.  reduce 68 (src line 485)
-
-
-state 63
-	primary_expr:  INT.    (69)
-
-	.  reduce 69 (src line 492)
-
-
-state 64
-	primary_expr:  FLOAT.    (70)
-
-	.  reduce 70 (src line 499)
-
-
-state 65
-	primary_expr:  STRING.    (71)
-
-	.  reduce 71 (src line 506)
-
-
-state 66
-	primary_expr:  TRUE.    (72)
-
-	.  reduce 72 (src line 512)
-
-
-state 67
-	primary_expr:  FALSE.    (73)
-
-	.  reduce 73 (src line 518)
-
-
-state 68
-	primary_expr:  LEFT_PAREN.expression RIGHT_PAREN 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
-
-	expression  goto 99
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 69
-	type:  LEFT_BRACKET INT RIGHT_BRACKET.type 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 100
-	identifier  goto 25
-
-state 70
-	type:  LEFT_BRACKET RIGHT_BRACKET type.    (19)
-
-	.  reduce 19 (src line 184)
-
-
-state 71
-	statement_list:  statement_list statement.    (21)
-
-	.  reduce 21 (src line 195)
-
-
-state 72
-	block_stmt:  LEFT_BRACE statement_list RIGHT_BRACE.    (41)
-
-	.  reduce 41 (src line 305)
-
-
-state 73
-	var_decl_stmt:  VAR identifier.type SEMICOLON 
-	var_decl_stmt:  VAR identifier.type ASSIGN expression SEMICOLON 
-
-	IDENTIFIER  shift 10
-	LEFT_BRACKET  shift 26
-	.  error
-
-	type  goto 101
-	identifier  goto 25
-
-state 74
-	assign_stmt:  expression ASSIGN.expression SEMICOLON 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
-
-	expression  goto 102
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 75
-	expr_stmt:  expression SEMICOLON.    (40)
-
-	.  reduce 40 (src line 297)
-
-
-state 76
-	if_stmt:  IF LEFT_PAREN.expression RIGHT_PAREN statement 
-	if_stmt:  IF LEFT_PAREN.expression RIGHT_PAREN statement ELSE statement 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
-
-	expression  goto 103
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 77
-	while_stmt:  WHILE LEFT_PAREN.expression RIGHT_PAREN statement 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
-
-	expression  goto 104
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 78
-	for_stmt:  FOR LEFT_PAREN.statement expression SEMICOLON statement RIGHT_PAREN statement 
-	for_stmt:  FOR LEFT_PAREN.SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
-	SEMICOLON  shift 106
-	.  error
-
-	statement  goto 105
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
-
-state 79
-	return_stmt:  RETURN SEMICOLON.    (38)
-
-	.  reduce 38 (src line 283)
-
-
-state 80
-	return_stmt:  RETURN expression.SEMICOLON 
-
-	SEMICOLON  shift 107
-	.  error
-
-
-state 81
 	binary_expr:  binary_expr PLUS.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 108
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 87
+	identifier  goto 42
 
-state 82
+state 61
 	binary_expr:  binary_expr MINUS.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 109
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 88
+	identifier  goto 42
 
-state 83
+state 62
 	binary_expr:  binary_expr STAR.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 110
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 89
+	identifier  goto 42
 
-state 84
+state 63
 	binary_expr:  binary_expr SLASH.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 111
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 90
+	identifier  goto 42
 
-state 85
+state 64
 	binary_expr:  binary_expr PERCENT.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 112
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 91
+	identifier  goto 42
 
-state 86
+state 65
 	binary_expr:  binary_expr EQUAL.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 113
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 92
+	identifier  goto 42
 
-state 87
+state 66
 	binary_expr:  binary_expr NOT_EQUAL.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 114
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 93
+	identifier  goto 42
 
-state 88
+state 67
 	binary_expr:  binary_expr LESS.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 115
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 94
+	identifier  goto 42
 
-state 89
+state 68
 	binary_expr:  binary_expr LESS_EQUAL.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 116
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 95
+	identifier  goto 42
 
-state 90
+state 69
 	binary_expr:  binary_expr GREATER.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 117
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 96
+	identifier  goto 42
 
-state 91
+state 70
 	binary_expr:  binary_expr GREATER_EQUAL.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 118
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 97
+	identifier  goto 42
 
-state 92
+state 71
 	binary_expr:  binary_expr AND.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 119
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 98
+	identifier  goto 42
 
-state 93
+state 72
 	binary_expr:  binary_expr OR.binary_expr 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 120
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 99
+	identifier  goto 42
 
-state 94
+state 73
 	call_expr:  call_expr LEFT_PAREN.argument_list RIGHT_PAREN 
 	call_expr:  call_expr LEFT_PAREN.RIGHT_PAREN 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	RIGHT_PAREN  shift 122
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	RIGHT_PAREN  shift 101
 	.  error
 
-	expression  goto 123
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	argument_list  goto 121
-	identifier  goto 62
+	expression  goto 102
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	argument_list  goto 100
+	identifier  goto 42
 
-state 95
+state 74
 	call_expr:  call_expr LEFT_BRACKET.expression RIGHT_BRACKET 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	expression  goto 124
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	expression  goto 103
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
-state 96
+state 75
 	call_expr:  call_expr DOT.identifier 
 
-	IDENTIFIER  shift 10
+	IDENTIFIER  shift 13
 	.  error
 
-	identifier  goto 125
+	identifier  goto 104
+
+state 76
+	unary_expr:  MINUS unary_expr.    (66)
+
+	.  reduce 66 (src line 485)
+
+
+state 77
+	unary_expr:  NOT unary_expr.    (67)
+
+	.  reduce 67 (src line 492)
+
+
+state 78
+	primary_expr:  LEFT_PAREN expression.RIGHT_PAREN 
+
+	RIGHT_PAREN  shift 105
+	.  error
+
+
+state 79
+	main_function:  type identifier LEFT_PAREN RIGHT_PAREN block_stmt.    (11)
+
+	.  reduce 11 (src line 125)
+
+
+state 80
+	block_stmt:  LEFT_BRACE.statement_list RIGHT_BRACE 
+	block_stmt:  LEFT_BRACE.RIGHT_BRACE 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	RIGHT_BRACE  shift 107
+	.  error
+
+	statement  goto 108
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	statement_list  goto 106
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 81
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type.block_stmt 
+
+	LEFT_BRACE  shift 80
+	.  error
+
+	block_stmt  goto 123
+
+state 82
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW.type block_stmt 
+
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
+	.  error
+
+	type  goto 124
+	identifier  goto 11
+
+state 83
+	parameter_list:  parameter_list COMMA parameter.    (19)
+
+	.  reduce 19 (src line 194)
+
+
+state 84
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt.    (13)
+
+	.  reduce 13 (src line 146)
+
+
+state 85
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type.block_stmt 
+
+	LEFT_BRACE  shift 80
+	.  error
+
+	block_stmt  goto 125
+
+state 86
+	struct_field:  identifier type SEMICOLON.    (23)
+
+	.  reduce 23 (src line 214)
+
+
+state 87
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr PLUS binary_expr.    (52)
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 52 (src line 378)
+
+
+state 88
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr MINUS binary_expr.    (53)
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 53 (src line 386)
+
+
+state 89
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr STAR binary_expr.    (54)
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	.  reduce 54 (src line 394)
+
+
+state 90
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr SLASH binary_expr.    (55)
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	.  reduce 55 (src line 402)
+
+
+state 91
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr PERCENT binary_expr.    (56)
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	.  reduce 56 (src line 410)
+
+
+state 92
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr EQUAL binary_expr.    (57)
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	LESS  shift 67
+	LESS_EQUAL  shift 68
+	GREATER  shift 69
+	GREATER_EQUAL  shift 70
+	.  reduce 57 (src line 418)
+
+
+state 93
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr NOT_EQUAL binary_expr.    (58)
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	LESS  shift 67
+	LESS_EQUAL  shift 68
+	GREATER  shift 69
+	GREATER_EQUAL  shift 70
+	.  reduce 58 (src line 426)
+
+
+state 94
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr LESS binary_expr.    (59)
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 59 (src line 434)
+
+
+state 95
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr LESS_EQUAL binary_expr.    (60)
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 60 (src line 442)
+
+
+state 96
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr GREATER binary_expr.    (61)
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 61 (src line 450)
+
 
 state 97
-	unary_expr:  MINUS unary_expr.    (59)
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr GREATER_EQUAL binary_expr.    (62)
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
 
-	.  reduce 59 (src line 431)
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	.  reduce 62 (src line 458)
 
 
 state 98
-	unary_expr:  NOT unary_expr.    (60)
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr AND binary_expr.    (63)
+	binary_expr:  binary_expr.OR binary_expr 
 
-	.  reduce 60 (src line 438)
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	EQUAL  shift 65
+	NOT_EQUAL  shift 66
+	LESS  shift 67
+	LESS_EQUAL  shift 68
+	GREATER  shift 69
+	GREATER_EQUAL  shift 70
+	.  reduce 63 (src line 466)
 
 
 state 99
-	primary_expr:  LEFT_PAREN expression.RIGHT_PAREN 
+	binary_expr:  binary_expr.PLUS binary_expr 
+	binary_expr:  binary_expr.MINUS binary_expr 
+	binary_expr:  binary_expr.STAR binary_expr 
+	binary_expr:  binary_expr.SLASH binary_expr 
+	binary_expr:  binary_expr.PERCENT binary_expr 
+	binary_expr:  binary_expr.EQUAL binary_expr 
+	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
+	binary_expr:  binary_expr.LESS binary_expr 
+	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
+	binary_expr:  binary_expr.GREATER binary_expr 
+	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
+	binary_expr:  binary_expr.AND binary_expr 
+	binary_expr:  binary_expr.OR binary_expr 
+	binary_expr:  binary_expr OR binary_expr.    (64)
 
-	RIGHT_PAREN  shift 126
-	.  error
+	PLUS  shift 60
+	MINUS  shift 61
+	STAR  shift 62
+	SLASH  shift 63
+	PERCENT  shift 64
+	EQUAL  shift 65
+	NOT_EQUAL  shift 66
+	LESS  shift 67
+	LESS_EQUAL  shift 68
+	GREATER  shift 69
+	GREATER_EQUAL  shift 70
+	AND  shift 71
+	.  reduce 64 (src line 474)
 
 
 state 100
-	type:  LEFT_BRACKET INT RIGHT_BRACKET type.    (18)
+	call_expr:  call_expr LEFT_PAREN argument_list.RIGHT_PAREN 
+	argument_list:  argument_list.COMMA expression 
 
-	.  reduce 18 (src line 177)
+	RIGHT_PAREN  shift 126
+	COMMA  shift 127
+	.  error
 
 
 state 101
-	var_decl_stmt:  VAR identifier type.SEMICOLON 
-	var_decl_stmt:  VAR identifier type.ASSIGN expression SEMICOLON 
+	call_expr:  call_expr LEFT_PAREN RIGHT_PAREN.    (70)
 
-	ASSIGN  shift 128
-	SEMICOLON  shift 127
-	.  error
+	.  reduce 70 (src line 509)
 
 
 state 102
-	assign_stmt:  expression ASSIGN expression.SEMICOLON 
+	argument_list:  expression.    (73)
 
-	SEMICOLON  shift 129
-	.  error
+	.  reduce 73 (src line 531)
 
 
 state 103
-	if_stmt:  IF LEFT_PAREN expression.RIGHT_PAREN statement 
-	if_stmt:  IF LEFT_PAREN expression.RIGHT_PAREN statement ELSE statement 
+	call_expr:  call_expr LEFT_BRACKET expression.RIGHT_BRACKET 
 
-	RIGHT_PAREN  shift 130
+	RIGHT_BRACKET  shift 128
 	.  error
 
 
 state 104
-	while_stmt:  WHILE LEFT_PAREN expression.RIGHT_PAREN statement 
+	call_expr:  call_expr DOT identifier.    (72)
 
-	RIGHT_PAREN  shift 131
-	.  error
+	.  reduce 72 (src line 523)
 
 
 state 105
-	for_stmt:  FOR LEFT_PAREN statement.expression SEMICOLON statement RIGHT_PAREN statement 
+	primary_expr:  LEFT_PAREN expression RIGHT_PAREN.    (81)
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	.  error
+	.  reduce 81 (src line 578)
 
-	expression  goto 132
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
 
 state 106
-	for_stmt:  FOR LEFT_PAREN SEMICOLON.expression SEMICOLON statement RIGHT_PAREN statement 
+	statement_list:  statement_list.statement 
+	block_stmt:  LEFT_BRACE statement_list.RIGHT_BRACE 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	RIGHT_BRACE  shift 130
 	.  error
 
-	expression  goto 133
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	statement  goto 129
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
 state 107
-	return_stmt:  RETURN expression SEMICOLON.    (39)
+	block_stmt:  LEFT_BRACE RIGHT_BRACE.    (49)
 
-	.  reduce 39 (src line 290)
+	.  reduce 49 (src line 366)
 
 
 state 108
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr PLUS binary_expr.    (45)
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement_list:  statement.    (27)
 
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 45 (src line 324)
+	.  reduce 27 (src line 245)
 
 
 state 109
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr MINUS binary_expr.    (46)
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  var_decl_stmt.    (29)
 
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 46 (src line 332)
+	.  reduce 29 (src line 253)
 
 
 state 110
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr STAR binary_expr.    (47)
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  assign_stmt.    (30)
 
-	.  reduce 47 (src line 340)
+	.  reduce 30 (src line 255)
 
 
 state 111
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr SLASH binary_expr.    (48)
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  if_stmt.    (31)
 
-	.  reduce 48 (src line 348)
+	.  reduce 31 (src line 256)
 
 
 state 112
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr PERCENT binary_expr.    (49)
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  while_stmt.    (32)
 
-	.  reduce 49 (src line 356)
+	.  reduce 32 (src line 257)
 
 
 state 113
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr EQUAL binary_expr.    (50)
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  for_stmt.    (33)
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	LESS  shift 88
-	LESS_EQUAL  shift 89
-	GREATER  shift 90
-	GREATER_EQUAL  shift 91
-	.  reduce 50 (src line 364)
+	.  reduce 33 (src line 258)
 
 
 state 114
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr NOT_EQUAL binary_expr.    (51)
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  return_stmt.    (34)
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	LESS  shift 88
-	LESS_EQUAL  shift 89
-	GREATER  shift 90
-	GREATER_EQUAL  shift 91
-	.  reduce 51 (src line 372)
+	.  reduce 34 (src line 259)
 
 
 state 115
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr LESS binary_expr.    (52)
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  expr_stmt.    (35)
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 52 (src line 380)
+	.  reduce 35 (src line 260)
 
 
 state 116
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr LESS_EQUAL binary_expr.    (53)
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	statement:  block_stmt.    (36)
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 53 (src line 388)
+	.  reduce 36 (src line 261)
 
 
 state 117
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr GREATER binary_expr.    (54)
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	var_decl_stmt:  VAR.identifier type SEMICOLON 
+	var_decl_stmt:  VAR.identifier type ASSIGN expression SEMICOLON 
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 54 (src line 396)
+	IDENTIFIER  shift 13
+	.  error
 
+	identifier  goto 131
 
 state 118
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr GREATER_EQUAL binary_expr.    (55)
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
+	assign_stmt:  expression.ASSIGN expression SEMICOLON 
+	expr_stmt:  expression.SEMICOLON 
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	.  reduce 55 (src line 404)
+	ASSIGN  shift 132
+	SEMICOLON  shift 133
+	.  error
 
 
 state 119
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr AND binary_expr.    (56)
-	binary_expr:  binary_expr.OR binary_expr 
+	if_stmt:  IF.LEFT_PAREN expression RIGHT_PAREN statement 
+	if_stmt:  IF.LEFT_PAREN expression RIGHT_PAREN statement ELSE statement 
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	EQUAL  shift 86
-	NOT_EQUAL  shift 87
-	LESS  shift 88
-	LESS_EQUAL  shift 89
-	GREATER  shift 90
-	GREATER_EQUAL  shift 91
-	.  reduce 56 (src line 412)
+	LEFT_PAREN  shift 134
+	.  error
 
 
 state 120
-	binary_expr:  binary_expr.PLUS binary_expr 
-	binary_expr:  binary_expr.MINUS binary_expr 
-	binary_expr:  binary_expr.STAR binary_expr 
-	binary_expr:  binary_expr.SLASH binary_expr 
-	binary_expr:  binary_expr.PERCENT binary_expr 
-	binary_expr:  binary_expr.EQUAL binary_expr 
-	binary_expr:  binary_expr.NOT_EQUAL binary_expr 
-	binary_expr:  binary_expr.LESS binary_expr 
-	binary_expr:  binary_expr.LESS_EQUAL binary_expr 
-	binary_expr:  binary_expr.GREATER binary_expr 
-	binary_expr:  binary_expr.GREATER_EQUAL binary_expr 
-	binary_expr:  binary_expr.AND binary_expr 
-	binary_expr:  binary_expr.OR binary_expr 
-	binary_expr:  binary_expr OR binary_expr.    (57)
+	while_stmt:  WHILE.LEFT_PAREN expression RIGHT_PAREN statement 
 
-	PLUS  shift 81
-	MINUS  shift 82
-	STAR  shift 83
-	SLASH  shift 84
-	PERCENT  shift 85
-	EQUAL  shift 86
-	NOT_EQUAL  shift 87
-	LESS  shift 88
-	LESS_EQUAL  shift 89
-	GREATER  shift 90
-	GREATER_EQUAL  shift 91
-	AND  shift 92
-	.  reduce 57 (src line 420)
+	LEFT_PAREN  shift 135
+	.  error
 
 
 state 121
-	call_expr:  call_expr LEFT_PAREN argument_list.RIGHT_PAREN 
-	argument_list:  argument_list.COMMA expression 
+	for_stmt:  FOR.LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN statement 
+	for_stmt:  FOR.LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement 
 
-	RIGHT_PAREN  shift 134
-	COMMA  shift 135
+	LEFT_PAREN  shift 136
 	.  error
 
 
 state 122
-	call_expr:  call_expr LEFT_PAREN RIGHT_PAREN.    (63)
+	return_stmt:  RETURN.SEMICOLON 
+	return_stmt:  RETURN.expression SEMICOLON 
 
-	.  reduce 63 (src line 455)
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	SEMICOLON  shift 137
+	.  error
 
+	expression  goto 138
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
 state 123
-	argument_list:  expression.    (66)
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt.    (12)
 
-	.  reduce 66 (src line 477)
+	.  reduce 12 (src line 136)
 
 
 state 124
-	call_expr:  call_expr LEFT_BRACKET expression.RIGHT_BRACKET 
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type.block_stmt 
 
-	RIGHT_BRACKET  shift 136
+	LEFT_BRACE  shift 80
 	.  error
 
+	block_stmt  goto 139
 
 state 125
-	call_expr:  call_expr DOT identifier.    (65)
+	function_decl:  FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt.    (15)
 
-	.  reduce 65 (src line 469)
+	.  reduce 15 (src line 164)
 
 
 state 126
-	primary_expr:  LEFT_PAREN expression RIGHT_PAREN.    (74)
+	call_expr:  call_expr LEFT_PAREN argument_list RIGHT_PAREN.    (69)
 
-	.  reduce 74 (src line 524)
+	.  reduce 69 (src line 502)
 
 
 state 127
-	var_decl_stmt:  VAR identifier type SEMICOLON.    (30)
+	argument_list:  argument_list COMMA.expression 
 
-	.  reduce 30 (src line 209)
-
-
-state 128
-	var_decl_stmt:  VAR identifier type ASSIGN.expression SEMICOLON 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	expression  goto 137
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	expression  goto 140
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 128
+	call_expr:  call_expr LEFT_BRACKET expression RIGHT_BRACKET.    (71)
+
+	.  reduce 71 (src line 516)
+
 
 state 129
-	assign_stmt:  expression ASSIGN expression SEMICOLON.    (32)
+	statement_list:  statement_list statement.    (28)
 
-	.  reduce 32 (src line 227)
+	.  reduce 28 (src line 249)
 
 
 state 130
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN.statement 
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN.statement ELSE statement 
+	block_stmt:  LEFT_BRACE statement_list RIGHT_BRACE.    (48)
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
-	.  error
+	.  reduce 48 (src line 359)
 
-	statement  goto 138
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
 
 state 131
-	while_stmt:  WHILE LEFT_PAREN expression RIGHT_PAREN.statement 
+	var_decl_stmt:  VAR identifier.type SEMICOLON 
+	var_decl_stmt:  VAR identifier.type ASSIGN expression SEMICOLON 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
+	IDENTIFIER  shift 13
+	LEFT_BRACKET  shift 12
 	.  error
 
-	statement  goto 139
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	type  goto 141
+	identifier  goto 11
 
 state 132
-	for_stmt:  FOR LEFT_PAREN statement expression.SEMICOLON statement RIGHT_PAREN statement 
+	assign_stmt:  expression ASSIGN.expression SEMICOLON 
 
-	SEMICOLON  shift 140
-	.  error
-
-
-state 133
-	for_stmt:  FOR LEFT_PAREN SEMICOLON expression.SEMICOLON statement RIGHT_PAREN statement 
-
-	SEMICOLON  shift 141
-	.  error
-
-
-state 134
-	call_expr:  call_expr LEFT_PAREN argument_list RIGHT_PAREN.    (62)
-
-	.  reduce 62 (src line 448)
-
-
-state 135
-	argument_list:  argument_list COMMA.expression 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
 	expression  goto 142
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
-state 136
-	call_expr:  call_expr LEFT_BRACKET expression RIGHT_BRACKET.    (64)
+state 133
+	expr_stmt:  expression SEMICOLON.    (47)
 
-	.  reduce 64 (src line 462)
+	.  reduce 47 (src line 351)
 
 
-state 137
-	var_decl_stmt:  VAR identifier type ASSIGN expression.SEMICOLON 
+state 134
+	if_stmt:  IF LEFT_PAREN.expression RIGHT_PAREN statement 
+	if_stmt:  IF LEFT_PAREN.expression RIGHT_PAREN statement ELSE statement 
 
-	SEMICOLON  shift 143
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
+	expression  goto 143
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
-138: shift/reduce conflict (shift 144(0), red'n 33(0)) on ELSE
-state 138
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement.    (33)
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement.ELSE statement 
+state 135
+	while_stmt:  WHILE LEFT_PAREN.expression RIGHT_PAREN statement 
 
-	ELSE  shift 144
-	.  reduce 33 (src line 236)
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	.  error
 
+	expression  goto 144
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
-state 139
-	while_stmt:  WHILE LEFT_PAREN expression RIGHT_PAREN statement.    (35)
+state 136
+	for_stmt:  FOR LEFT_PAREN.statement expression SEMICOLON statement RIGHT_PAREN statement 
+	for_stmt:  FOR LEFT_PAREN.SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement 
 
-	.  reduce 35 (src line 254)
-
-
-state 140
-	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON.statement RIGHT_PAREN statement 
-
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	SEMICOLON  shift 146
 	.  error
 
 	statement  goto 145
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
-state 141
-	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON.statement RIGHT_PAREN statement 
+state 137
+	return_stmt:  RETURN SEMICOLON.    (45)
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
+	.  reduce 45 (src line 337)
+
+
+state 138
+	return_stmt:  RETURN expression.SEMICOLON 
+
+	SEMICOLON  shift 147
 	.  error
 
-	statement  goto 146
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+
+state 139
+	function_decl:  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt.    (14)
+
+	.  reduce 14 (src line 155)
+
+
+state 140
+	argument_list:  argument_list COMMA expression.    (74)
+
+	.  reduce 74 (src line 535)
+
+
+state 141
+	var_decl_stmt:  VAR identifier type.SEMICOLON 
+	var_decl_stmt:  VAR identifier type.ASSIGN expression SEMICOLON 
+
+	ASSIGN  shift 149
+	SEMICOLON  shift 148
+	.  error
+
 
 state 142
-	argument_list:  argument_list COMMA expression.    (67)
+	assign_stmt:  expression ASSIGN expression.SEMICOLON 
 
-	.  reduce 67 (src line 481)
+	SEMICOLON  shift 150
+	.  error
 
 
 state 143
-	var_decl_stmt:  VAR identifier type ASSIGN expression SEMICOLON.    (31)
+	if_stmt:  IF LEFT_PAREN expression.RIGHT_PAREN statement 
+	if_stmt:  IF LEFT_PAREN expression.RIGHT_PAREN statement ELSE statement 
 
-	.  reduce 31 (src line 218)
+	RIGHT_PAREN  shift 151
+	.  error
 
 
 state 144
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement ELSE.statement 
+	while_stmt:  WHILE LEFT_PAREN expression.RIGHT_PAREN statement 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
+	RIGHT_PAREN  shift 152
 	.  error
 
-	statement  goto 147
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
 
 state 145
-	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement.RIGHT_PAREN statement 
+	for_stmt:  FOR LEFT_PAREN statement.expression SEMICOLON statement RIGHT_PAREN statement 
 
-	RIGHT_PAREN  shift 148
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
+	expression  goto 153
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
 state 146
-	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement.RIGHT_PAREN statement 
+	for_stmt:  FOR LEFT_PAREN SEMICOLON.expression SEMICOLON statement RIGHT_PAREN statement 
 
-	RIGHT_PAREN  shift 149
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
+	expression  goto 154
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
 state 147
-	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement ELSE statement.    (34)
+	return_stmt:  RETURN expression SEMICOLON.    (46)
 
-	.  reduce 34 (src line 245)
+	.  reduce 46 (src line 344)
 
 
 state 148
-	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN.statement 
+	var_decl_stmt:  VAR identifier type SEMICOLON.    (37)
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
-	.  error
+	.  reduce 37 (src line 263)
 
-	statement  goto 150
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
 
 state 149
-	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN.statement 
+	var_decl_stmt:  VAR identifier type ASSIGN.expression SEMICOLON 
 
-	INT  shift 63
-	FLOAT  shift 64
-	STRING  shift 65
-	IDENTIFIER  shift 10
-	VAR  shift 50
-	IF  shift 52
-	WHILE  shift 53
-	FOR  shift 54
-	RETURN  shift 55
-	TRUE  shift 66
-	FALSE  shift 67
-	MINUS  shift 59
-	NOT  shift 60
-	LEFT_PAREN  shift 68
-	LEFT_BRACE  shift 34
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
 	.  error
 
-	statement  goto 151
-	var_decl_stmt  goto 42
-	assign_stmt  goto 43
-	if_stmt  goto 44
-	while_stmt  goto 45
-	for_stmt  goto 46
-	return_stmt  goto 47
-	expr_stmt  goto 48
-	block_stmt  goto 49
-	expression  goto 51
-	primary_expr  goto 61
-	call_expr  goto 58
-	unary_expr  goto 57
-	binary_expr  goto 56
-	identifier  goto 62
+	expression  goto 155
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
 
 state 150
-	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN statement.    (36)
+	assign_stmt:  expression ASSIGN expression SEMICOLON.    (39)
 
-	.  reduce 36 (src line 263)
+	.  reduce 39 (src line 281)
 
 
 state 151
-	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement.    (37)
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN.statement 
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN.statement ELSE statement 
 
-	.  reduce 37 (src line 273)
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 156
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 152
+	while_stmt:  WHILE LEFT_PAREN expression RIGHT_PAREN.statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 157
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 153
+	for_stmt:  FOR LEFT_PAREN statement expression.SEMICOLON statement RIGHT_PAREN statement 
+
+	SEMICOLON  shift 158
+	.  error
 
 
-45 terminals, 28 nonterminals
-76 grammar rules, 152/16000 states
-1 shift/reduce, 0 reduce/reduce conflicts reported
-77 working sets used
-memory: parser 437/240000
+state 154
+	for_stmt:  FOR LEFT_PAREN SEMICOLON expression.SEMICOLON statement RIGHT_PAREN statement 
+
+	SEMICOLON  shift 159
+	.  error
+
+
+state 155
+	var_decl_stmt:  VAR identifier type ASSIGN expression.SEMICOLON 
+
+	SEMICOLON  shift 160
+	.  error
+
+
+state 156
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement.    (40)
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement.ELSE statement 
+
+	ELSE  shift 161
+	.  reduce 40 (src line 290)
+
+
+state 157
+	while_stmt:  WHILE LEFT_PAREN expression RIGHT_PAREN statement.    (42)
+
+	.  reduce 42 (src line 308)
+
+
+state 158
+	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON.statement RIGHT_PAREN statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 162
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 159
+	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON.statement RIGHT_PAREN statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 163
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 160
+	var_decl_stmt:  VAR identifier type ASSIGN expression SEMICOLON.    (38)
+
+	.  reduce 38 (src line 272)
+
+
+state 161
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement ELSE.statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 164
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 162
+	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement.RIGHT_PAREN statement 
+
+	RIGHT_PAREN  shift 165
+	.  error
+
+
+state 163
+	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement.RIGHT_PAREN statement 
+
+	RIGHT_PAREN  shift 166
+	.  error
+
+
+state 164
+	if_stmt:  IF LEFT_PAREN expression RIGHT_PAREN statement ELSE statement.    (41)
+
+	.  reduce 41 (src line 299)
+
+
+state 165
+	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN.statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 167
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 166
+	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN.statement 
+
+	INT  shift 43
+	FLOAT  shift 44
+	STRING  shift 45
+	IDENTIFIER  shift 13
+	VAR  shift 117
+	IF  shift 119
+	WHILE  shift 120
+	FOR  shift 121
+	RETURN  shift 122
+	TRUE  shift 46
+	FALSE  shift 47
+	MINUS  shift 39
+	NOT  shift 40
+	LEFT_PAREN  shift 48
+	LEFT_BRACE  shift 80
+	.  error
+
+	statement  goto 168
+	var_decl_stmt  goto 109
+	assign_stmt  goto 110
+	if_stmt  goto 111
+	while_stmt  goto 112
+	for_stmt  goto 113
+	return_stmt  goto 114
+	expr_stmt  goto 115
+	block_stmt  goto 116
+	expression  goto 118
+	primary_expr  goto 41
+	call_expr  goto 38
+	unary_expr  goto 37
+	binary_expr  goto 36
+	identifier  goto 42
+
+state 167
+	for_stmt:  FOR LEFT_PAREN statement expression SEMICOLON statement RIGHT_PAREN statement.    (43)
+
+	.  reduce 43 (src line 317)
+
+
+state 168
+	for_stmt:  FOR LEFT_PAREN SEMICOLON expression SEMICOLON statement RIGHT_PAREN statement.    (44)
+
+	.  reduce 44 (src line 327)
+
+
+47 terminals, 30 nonterminals
+83 grammar rules, 169/16000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+79 working sets used
+memory: parser 465/240000
 114 extra closures
-532 shift entries, 1 exceptions
-88 goto entries
-241 entries saved by goto default
-Optimizer space used: output 322/240000
-322 table entries, 45 zero
-maximum spread: 42, maximum offset: 149
+560 shift entries, 1 exceptions
+102 goto entries
+249 entries saved by goto default
+Optimizer space used: output 377/240000
+377 table entries, 73 zero
+maximum spread: 44, maximum offset: 166

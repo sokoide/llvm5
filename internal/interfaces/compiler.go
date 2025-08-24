@@ -64,6 +64,7 @@ const (
 	TokenComma
 	TokenDot
 	TokenColon
+	TokenArrow
 
 	// Special
 	TokenEOF
