@@ -586,9 +586,19 @@ func (g *Generator) VisitIdentifierExpr(node *domain.IdentifierExpr) error {
 func (g *Generator) VisitLiteralExpr(node *domain.LiteralExpr) error {
 	switch node.GetType().String() {
 	case "int":
-		g.emit("%%temp_result = i32 %s", node.Value.(string))
+		if val, ok := node.Value.(int64); ok {
+			g.emit("%%temp_result = i32 %d", val)
+		} else {
+			// Fallback for safety, though parser should ensure int64
+			g.emit("%%temp_result = i32 %s", node.Value)
+		}
 	case "double":
-		g.emit("%%temp_result = double %s", node.Value.(string))
+		if val, ok := node.Value.(float64); ok {
+			g.emit("%%temp_result = double %f", val)
+		} else {
+			// Fallback for safety
+			g.emit("%%temp_result = double %s", node.Value)
+		}
 	case "string":
 		// String literals need special handling
 		strValue := strings.Trim(node.Value.(string), "\"")

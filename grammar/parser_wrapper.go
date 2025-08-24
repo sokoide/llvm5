@@ -70,7 +70,7 @@ func (p *Parser) Lex(lval *yySymType) int {
 	case interfaces.TokenFloat:
 		return FLOAT
 	case interfaces.TokenString:
-		return IDENTIFIER
+		return STRING
 	case interfaces.TokenBool:
 		return IDENTIFIER
 	case interfaces.TokenIdentifier:
@@ -92,9 +92,9 @@ func (p *Parser) Lex(lval *yySymType) int {
 	case interfaces.TokenReturn:
 		return RETURN
 	case interfaces.TokenTrue:
-		return IDENTIFIER
+		return TRUE
 	case interfaces.TokenFalse:
-		return IDENTIFIER
+		return FALSE
 	case interfaces.TokenPlus:
 		return PLUS
 	case interfaces.TokenMinus:
