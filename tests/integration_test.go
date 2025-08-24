@@ -2,6 +2,9 @@ package tests
 
 import (
 	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -347,6 +350,172 @@ int main() {
 	err = pipeline.Compile(tempFile, input, output)
 	// Skip error check for mock components
 	_ = err
+}
+
+// TestExamplesDirectory tests all .sl files in the examples directory
+func TestExamplesDirectory(t *testing.T) {
+	// Find all .sl files in examples directory
+	exampleFiles, err := findExampleFiles()
+	if err != nil {
+		t.Fatalf("Failed to find example files: %v", err)
+	}
+
+	if len(exampleFiles) == 0 {
+		t.Fatal("No .sl files found in examples directory")
+	}
+
+	for _, slFile := range exampleFiles {
+		t.Run(slFile, func(t *testing.T) {
+			testExampleFile(t, slFile)
+		})
+	}
+}
+
+// testExampleFile tests a single .sl file from the examples directory
+func testExampleFile(t *testing.T, slFile string) {
+	// Verify the source file exists and is readable
+	if _, err := os.Stat(slFile); err != nil {
+		t.Fatalf("Source file %s does not exist or is not readable: %v", slFile, err)
+	}
+
+	// Create compiler configuration - use real components for actual testing
+	config := application.CompilerConfig{
+		UseMockComponents: false, // Use real compiler components
+		MemoryManagerType: application.PooledMemoryManager,
+		ErrorReporterType: application.ConsoleErrorReporter,
+		CompilationOptions: domain.CompilationOptions{
+			OptimizationLevel: 0,
+			DebugInfo:         false,
+			TargetTriple:      "x86_64-apple-macosx10.15.0",
+			OutputPath:        "",
+			WarningsAsErrors:  false,
+		},
+		ErrorOutput: os.Stderr,
+		Verbose:     false,
+	}
+
+	// Create compiler factory and pipeline
+	factory := application.NewCompilerFactory(config)
+	pipeline := factory.CreateCompilerPipeline()
+
+	// Open input file
+	input, err := os.Open(slFile)
+	if err != nil {
+		t.Fatalf("Failed to open input file %s: %v", slFile, err)
+	}
+	defer input.Close()
+
+	// Create output file
+	llFile := strings.TrimSuffix(slFile, ".sl") + "_test.ll"
+	output, err := os.Create(llFile)
+	if err != nil {
+		t.Fatalf("Failed to create output file %s: %v", llFile, err)
+	}
+	defer output.Close()
+	defer os.Remove(llFile) // Clean up after test
+
+	// Compile
+	err = pipeline.Compile(slFile, input, output)
+	if err != nil {
+		t.Fatalf("Compilation failed for %s: %v", slFile, err)
+	}
+
+	// Validate the generated .ll file
+	validateGeneratedLLFile(t, llFile, slFile)
+}
+
+// validateGeneratedLLFile validates that the generated .ll file contains valid LLVM IR
+func validateGeneratedLLFile(t *testing.T, llFile, originalSlFile string) {
+	// Read the generated .ll file
+	llContent, err := os.ReadFile(llFile)
+	if err != nil {
+		t.Fatalf("Failed to read generated .ll file %s: %v", llFile, err)
+	}
+
+	llContentStr := string(llContent)
+
+	// Basic validation - check for essential LLVM IR components
+	if !strings.Contains(llContentStr, "; ModuleID = 'staticlang'") {
+		t.Error("Generated .ll file should contain module ID header")
+	}
+
+	if !strings.Contains(llContentStr, "target datalayout") {
+		t.Error("Generated .ll file should contain target datalayout")
+	}
+
+	if !strings.Contains(llContentStr, "target triple") {
+		t.Error("Generated .ll file should contain target triple")
+	}
+
+	// Check for function definitions
+	if !strings.Contains(llContentStr, "define ") {
+		t.Error("Generated .ll file should contain function definitions")
+	}
+
+	// Check for main function (most examples should have one)
+	if !strings.Contains(llContentStr, "@main") {
+		t.Error("Generated .ll file should contain main function")
+	}
+
+	// Check file is not empty
+	if len(llContentStr) == 0 {
+		t.Error("Generated .ll file should not be empty")
+	}
+
+	// Check for basic LLVM IR structure
+	if !strings.Contains(llContentStr, "%") {
+		t.Error("Generated .ll file should contain registers or labels")
+	}
+
+	// Try to validate with LLVM tools if available
+	validateWithLLVM(t, llFile)
+
+	t.Logf("Successfully generated valid .ll file for %s (%d bytes)", originalSlFile, len(llContentStr))
+}
+
+// validateWithLLVM attempts to validate the .ll file using LLVM tools
+func validateWithLLVM(t *testing.T, llFile string) {
+	// Check if llvm-as is available
+	if _, err := exec.LookPath("llvm-as"); err == nil {
+		// Try to assemble the .ll file
+		cmd := exec.Command("llvm-as", "-o", "/dev/null", llFile)
+		if err := cmd.Run(); err != nil {
+			t.Errorf("Generated .ll file failed LLVM assembly validation: %v", err)
+		} else {
+			t.Logf("Generated .ll file passed LLVM assembly validation")
+		}
+	} else {
+		t.Logf("llvm-as not available, skipping LLVM assembly validation")
+	}
+}
+
+// findExampleFiles finds all .sl files in the examples directory
+func findExampleFiles() ([]string, error) {
+	var slFiles []string
+
+	// Walk through examples directory (relative to project root)
+	examplesDir := "../examples"
+	err := filepath.Walk(examplesDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Check if it's a .sl file
+		if !info.IsDir() && strings.HasSuffix(path, ".sl") {
+			slFiles = append(slFiles, path)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Sort for consistent test ordering
+	sort.Strings(slFiles)
+
+	return slFiles, nil
 }
 
 // Helper function to create temporary files for testing
