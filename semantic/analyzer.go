@@ -25,6 +25,11 @@ func NewAnalyzer() *Analyzer {
 
 // Analyze performs semantic analysis on the AST
 func (a *Analyzer) Analyze(ast *domain.Program) error {
+	// Initialize builtin functions first
+	if err := a.initializeBuiltinFunctions(); err != nil {
+		return err
+	}
+
 	// First pass: collect all function and struct declarations
 	for _, decl := range ast.Declarations {
 		if err := a.declareTopLevelSymbol(decl); err != nil {
@@ -125,6 +130,32 @@ func (a *Analyzer) VisitProgram(prog *domain.Program) error {
 			return err
 		}
 	}
+	return nil
+}
+
+// initializeBuiltinFunctions adds builtin functions to the symbol table
+func (a *Analyzer) initializeBuiltinFunctions() error {
+	// Define builtin function types
+	builtinFunctions := map[string]*domain.FunctionType{
+		"print": {
+			ParameterTypes: []domain.Type{}, // Variadic - will be handled specially
+			ReturnType:     domain.NewVoidType(),
+		},
+	}
+
+	// Add builtin functions to symbol table
+	for name, funcType := range builtinFunctions {
+		_, err := a.symbolTable.DeclareSymbol(
+			name,
+			funcType,
+			interfaces.FunctionSymbol,
+			domain.SourceRange{}, // Builtin functions have no source location
+		)
+		if err != nil {
+			return fmt.Errorf("failed to declare builtin function %s: %v", name, err)
+		}
+	}
+
 	return nil
 }
 
@@ -499,7 +530,15 @@ func (a *Analyzer) VisitCallExpr(expr *domain.CallExpr) error {
 		return nil
 	}
 
-	// Check argument count
+	// Special handling for builtin functions
+	if identExpr, ok := expr.Function.(*domain.IdentifierExpr); ok {
+		if identExpr.Name == "print" {
+			// Special handling for print function - it's variadic
+			return a.handlePrintFunction(expr)
+		}
+	}
+
+	// Check argument count for regular functions
 	if len(expr.Args) != len(funcType.ParameterTypes) {
 		a.reportError(
 			domain.TypeCheckError,
@@ -533,6 +572,34 @@ func (a *Analyzer) VisitCallExpr(expr *domain.CallExpr) error {
 	}
 
 	expr.SetType(funcType.ReturnType)
+	return nil
+}
+
+// handlePrintFunction performs special validation for the print builtin function
+func (a *Analyzer) handlePrintFunction(expr *domain.CallExpr) error {
+	// Analyze all arguments
+	for _, arg := range expr.Args {
+		if err := arg.Accept(a); err != nil {
+			return err
+		}
+	}
+
+	// Print function validation logic
+	if len(expr.Args) == 0 {
+		a.reportError(
+			domain.SemanticError,
+			"print function requires at least one argument",
+			expr.GetLocation(),
+			"in print function call",
+			[]string{"provide at least one argument to print"},
+		)
+		expr.SetType(&domain.TypeError{Message: "invalid print call"})
+		return nil
+	}
+
+	// For now, accept any argument types for print function
+	// The code generator will handle type-specific formatting
+	expr.SetType(domain.NewVoidType())
 	return nil
 }
 

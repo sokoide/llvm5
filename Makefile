@@ -7,6 +7,7 @@ BINARY_NAME=staticlang
 MAIN_PATH=./cmd/staticlang
 BUILD_DIR=./build
 COVERAGE_DIR=./coverage
+RUNTIME_DIR=./runtime
 
 # Go parameters
 GOCMD=go
@@ -17,6 +18,10 @@ GOGET=$(GOCMD) get
 GOMOD=$(GOCMD) mod
 GOFMT=gofmt
 GOVET=$(GOCMD) vet
+
+# C compiler parameters
+CC=clang
+CFLAGS=-O2 -Wall -Wextra
 
 # Build flags
 LDFLAGS=-ldflags "-X main.Version=$(shell git describe --tags --always --dirty 2>/dev/null || echo 'dev') -X main.BuildDate=$(shell date -u '+%Y-%m-%d_%H:%M:%S')"
@@ -29,6 +34,15 @@ build:
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
 	$(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
+
+# Build the runtime library
+build-runtime:
+	@echo "Building runtime library..."
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $(BUILD_DIR)/builtin.o $(RUNTIME_DIR)/builtin.c
+
+# Build both compiler and runtime
+build-with-runtime: build build-runtime
 
 # Build for multiple platforms
 build-all: build-linux build-darwin build-windows
@@ -114,13 +128,18 @@ clean:
 	$(GOCLEAN)
 	rm -rf $(BUILD_DIR)
 	rm -rf $(COVERAGE_DIR)
+	rm -f examples/hello examples/hello.ll
 
 # Run example compilation
-run-example: build
+run-example: build-with-runtime
 	@echo "Running example compilation..."
 	@mkdir -p examples
-	@echo 'func main() { return 42; }' > examples/hello.sl
-	$(BUILD_DIR)/$(BINARY_NAME) -i examples/hello.sl -o examples/hello.ll -mock -v
+	@echo 'func main() -> int { print("Hello from StaticLang!"); print("Answer:", 42); return 42; }' > examples/hello.sl
+	$(BUILD_DIR)/$(BINARY_NAME) -i examples/hello.sl -o examples/hello.ll -v
+	@echo "Compiling LLVM IR to executable..."
+	$(CC) examples/hello.ll $(BUILD_DIR)/builtin.o -o examples/hello
+	@echo "Running compiled program..."
+	./examples/hello
 
 # Development helpers
 dev-setup:
@@ -135,6 +154,8 @@ help:
 	@echo "Available targets:"
 	@echo "  all           - Format, vet, test, and build"
 	@echo "  build         - Build the compiler for current platform"
+	@echo "  build-runtime - Build the runtime library (builtin.c)"
+	@echo "  build-with-runtime - Build both compiler and runtime"
 	@echo "  build-all     - Build for all supported platforms"
 	@echo "  build-linux   - Build for Linux"
 	@echo "  build-darwin  - Build for macOS"

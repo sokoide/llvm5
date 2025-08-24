@@ -215,15 +215,18 @@ func TestCodeGenFunctionCall(t *testing.T) {
 
 	printFunc := &domain.IdentifierExpr{
 		Name:  "print",
-		Type_: domain.NewIntType(),
+		Type_: domain.NewVoidType(), // print returns void, not int
 	}
-	printFunc.SetType(domain.NewIntType())
+	printFunc.SetType(&domain.FunctionType{
+		ParameterTypes: []domain.Type{}, // Builtin function
+		ReturnType:     domain.NewVoidType(),
+	})
 
 	callExpr := &domain.CallExpr{
 		Function: printFunc,
 		Args:     []domain.Expression{arg},
 	}
-	callExpr.SetType(domain.NewIntType()) // print returns int (like printf)
+	callExpr.SetType(domain.NewVoidType()) // print returns void
 
 	exprStmt := &domain.ExprStmt{
 		Expression: callExpr,
@@ -258,9 +261,9 @@ func TestCodeGenFunctionCall(t *testing.T) {
 		t.Fatalf("Code generation failed: %v", err)
 	}
 
-	// Check for printf call
-	if !strings.Contains(result, "call i32 (i8*, ...) @printf") {
-		t.Error("Generated code should contain printf call for print function")
+	// Check for sl_print_string call (new behavior for single string argument)
+	if !strings.Contains(result, "call void @sl_print_string") {
+		t.Error("Generated code should contain sl_print_string call for print function")
 	}
 }
 

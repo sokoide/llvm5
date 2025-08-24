@@ -92,42 +92,35 @@ func (g *Generator) newLabel(prefix string) string {
 }
 
 // Visitor pattern implementation for AST nodes
-func (g *Generator) VisitProgram(node *domain.Program) error {
-	// Emit LLVM IR header
+func (g *Generator) VisitProgram(prog *domain.Program) error {
+	// Emit LLVM module header
 	g.emit("; ModuleID = 'staticlang'")
 	g.emit("target datalayout = \"e-m:o-i64:64-f80:128-n8:16:32:64-S128\"")
 	g.emit("target triple = \"x86_64-apple-macosx10.15.0\"")
 	g.emit("")
 
-	// Declare external functions (built-ins)
+	// Emit external function declarations
 	g.emit("; External function declarations")
 	g.emit("declare i32 @printf(i8*, ...)")
 	g.emit("declare i8* @malloc(i64)")
 	g.emit("declare void @free(i8*)")
 	g.emit("")
 
-	// Generate global variables
-	for _, decl := range node.Declarations {
-		if varDecl, ok := decl.(*domain.VarDeclStmt); ok {
-			if err := g.generateGlobalVariable(varDecl); err != nil {
-				return err
-			}
-		}
-	}
-
-	// Generate string literals
-	g.emit("; String literals")
-	g.emit("@.str.print = private unnamed_addr constant [4 x i8] c\"%%s\\0A\\00\", align 1")
-	g.emit("@.str.print_int = private unnamed_addr constant [4 x i8] c\"%%d\\0A\\00\", align 1")
-	g.emit("@.str.print_double = private unnamed_addr constant [4 x i8] c\"%%f\\0A\\00\", align 1")
+	// Emit StaticLang builtin functions
+	g.emit("; StaticLang builtin functions")
+	g.emit("declare void @sl_print_int(i32)")
+	g.emit("declare void @sl_print_double(double)")
+	g.emit("declare void @sl_print_string(i8*)")
+	g.emit("declare i8* @sl_alloc_string(i8*)")
+	g.emit("declare i8* @sl_concat_string(i8*, i8*)")
+	g.emit("declare i32 @sl_compare_string(i8*, i8*)")
+	g.emit("declare i8* @sl_alloc_array(i64, i64)")
 	g.emit("")
 
-	// Generate functions
-	for _, decl := range node.Declarations {
-		if funcDecl, ok := decl.(*domain.FunctionDecl); ok {
-			if err := funcDecl.Accept(g); err != nil {
-				return err
-			}
+	// Process all declarations
+	for _, decl := range prog.Declarations {
+		if err := decl.Accept(g); err != nil {
+			return err
 		}
 	}
 
@@ -603,31 +596,12 @@ func (g *Generator) VisitUnaryExpr(node *domain.UnaryExpr) error {
 }
 
 func (g *Generator) VisitCallExpr(node *domain.CallExpr) error {
-	// Special handling for built-in functions (e.g. print)
-	if ident, ok := node.Function.(*domain.IdentifierExpr); ok && ident.Name == "print" && len(node.Args) == 1 {
-		if err := node.Args[0].Accept(g); err != nil {
-			return err
-		}
-
-		argType := node.Args[0].GetType().String()
-		switch argType {
-		case "int":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_int, i32 0, i32 0), i32 %s)", g.currentValue)
-		case "double":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_double, i32 0, i32 0), double %s)", g.currentValue)
-		case "string":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print, i32 0, i32 0), i8* %s)", g.currentValue)
-		}
-		// Generate a temp register for the printf result
-		tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
-		g.labelCounter++
-		g.emit("%s = i32 0", tempReg) // printf returns an int
-		g.currentValue = tempReg
-		g.currentType = "i32"
-		return nil
+	// Special handling for built-in print function
+	if ident, ok := node.Function.(*domain.IdentifierExpr); ok && ident.Name == "print" {
+		return g.handlePrintFunction(node)
 	}
 
-	// Generate arguments
+	// Generate arguments for regular function calls
 	var argValues []string
 	var argTypes []string
 	for _, arg := range node.Args {
@@ -665,6 +639,92 @@ func (g *Generator) VisitCallExpr(node *domain.CallExpr) error {
 		g.currentValue = tempReg
 		g.currentType = returnType
 	}
+
+	return nil
+}
+
+// handlePrintFunction handles both simple print(value) and formatted print("format", args...)
+func (g *Generator) handlePrintFunction(node *domain.CallExpr) error {
+	if len(node.Args) == 0 {
+		return fmt.Errorf("print function requires at least one argument")
+	}
+
+	// Single argument: use builtin sl_print_* functions
+	if len(node.Args) == 1 {
+		if err := node.Args[0].Accept(g); err != nil {
+			return err
+		}
+
+		argType := node.Args[0].GetType().String()
+		switch argType {
+		case "int":
+			g.emit("call void @sl_print_int(i32 %s)", g.currentValue)
+		case "double":
+			g.emit("call void @sl_print_double(double %s)", g.currentValue)
+		case "string":
+			g.emit("call void @sl_print_string(i8* %s)", g.currentValue)
+		default:
+			return fmt.Errorf("unsupported type for print: %s", argType)
+		}
+
+		// print functions are void, set current value accordingly
+		g.currentValue = ""
+		g.currentType = "void"
+		return nil
+	}
+
+	// Multiple arguments: formatted printing with printf
+	// First argument should be format string
+	if err := node.Args[0].Accept(g); err != nil {
+		return err
+	}
+
+	if node.Args[0].GetType().String() != "string" {
+		return fmt.Errorf("first argument to print must be a string for formatted printing")
+	}
+
+	formatValue := g.currentValue
+
+	// Get the actual format string for validation (if it's a literal)
+	var formatStr string
+	if lit, ok := node.Args[0].(*domain.LiteralExpr); ok {
+		if strVal, ok := lit.Value.(string); ok {
+			formatStr = strings.Trim(strVal, "\"")
+		}
+	}
+
+	// Generate remaining arguments
+	var argValues []string
+	var argTypes []string
+	for i := 1; i < len(node.Args); i++ {
+		if err := node.Args[i].Accept(g); err != nil {
+			return err
+		}
+		argType := g.getLLVMType(node.Args[i].GetType())
+		typeStr := node.Args[i].GetType().String()
+		argTypes = append(argTypes, typeStr)
+		argValues = append(argValues, fmt.Sprintf("%s %s", argType, g.currentValue))
+	}
+
+	// Validate format string if we have it as a literal
+	if formatStr != "" {
+		if err := g.validateFormatArguments(formatStr, argTypes); err != nil {
+			return fmt.Errorf("format string validation failed: %v", err)
+		}
+	}
+
+	// Generate printf call
+	tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
+	g.labelCounter++
+
+	argsStr := fmt.Sprintf("i8* %s", formatValue)
+	if len(argValues) > 0 {
+		argsStr += ", " + strings.Join(argValues, ", ")
+	}
+
+	g.emit("%s = call i32 (i8*, ...) @printf(%s)", tempReg, argsStr)
+	g.currentValue = tempReg
+	g.currentType = "i32"
 
 	return nil
 }
@@ -771,4 +831,56 @@ func (g *Generator) getTypeAlign(t domain.Type) int {
 	default:
 		return 4
 	}
+}
+
+// parseFormatString analyzes a printf-style format string and returns expected argument types
+func (g *Generator) parseFormatString(formatStr string) ([]string, error) {
+	var expectedTypes []string
+
+	for i := 0; i < len(formatStr); i++ {
+		if formatStr[i] == '%' {
+			if i+1 >= len(formatStr) {
+				return nil, fmt.Errorf("incomplete format specifier at end of string")
+			}
+
+			switch formatStr[i+1] {
+			case 'd', 'i':
+				expectedTypes = append(expectedTypes, "int")
+			case 'f', 'g', 'e':
+				expectedTypes = append(expectedTypes, "float") // StaticLang uses float, not double
+			case 's':
+				expectedTypes = append(expectedTypes, "string")
+			case 'c':
+				expectedTypes = append(expectedTypes, "int") // char is passed as int
+			case '%':
+				// %% is escaped %, no argument needed
+			default:
+				return nil, fmt.Errorf("unsupported format specifier: %%%c", formatStr[i+1])
+			}
+			i++ // Skip the format character
+		}
+	}
+
+	return expectedTypes, nil
+}
+
+// validateFormatArguments checks if the provided arguments match the format string expectations
+func (g *Generator) validateFormatArguments(formatStr string, argTypes []string) error {
+	expectedTypes, err := g.parseFormatString(formatStr)
+	if err != nil {
+		return err
+	}
+
+	if len(expectedTypes) != len(argTypes) {
+		return fmt.Errorf("format string expects %d arguments, got %d", len(expectedTypes), len(argTypes))
+	}
+
+	for i, expected := range expectedTypes {
+		actual := argTypes[i]
+		if expected != actual {
+			return fmt.Errorf("format argument %d: expected %s, got %s", i+1, expected, actual)
+		}
+	}
+
+	return nil
 }
