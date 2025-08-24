@@ -202,7 +202,7 @@ func (g *Generator) VisitFunctionDecl(node *domain.FunctionDecl) error {
 	// Allocate parameters on stack
 	for _, param := range node.Parameters {
 		g.emit("%%%s.addr = alloca %s, align %d", param.Name, g.getLLVMType(param.Type), g.getTypeAlign(param.Type))
-		g.emit("store %s %%%s, %s* %%%s.addr, align %d", g.getLLVMType(param.Type), param.Name, g.getLLVMType(param.Type), param.Name, g.getTypeAlign(param.Type))
+		g.emit("store %s %%%s, ptr %%%s.addr, align %d", g.getLLVMType(param.Type), param.Name, param.Name, g.getTypeAlign(param.Type))
 	}
 
 	// Generate function body
@@ -290,7 +290,7 @@ func (g *Generator) VisitAssignStmt(node *domain.AssignStmt) error {
 	align := g.getTypeAlign(node.Target.GetType())
 
 	if ident, ok := node.Target.(*domain.IdentifierExpr); ok {
-		g.emit("store %s %%temp_result, %s* %%%s, align %d", varType, varType, ident.Name, align)
+		g.emit("store %s %s, ptr %%%s, align %d", varType, g.currentValue, ident.Name, align)
 	}
 
 	return nil
@@ -305,12 +305,13 @@ func (g *Generator) VisitIfStmt(node *domain.IfStmt) error {
 	if err := node.Condition.Accept(g); err != nil {
 		return err
 	}
+	conditionReg := g.currentValue
 
 	// Branch based on condition
 	if node.ElseStmt != nil {
-		g.emit("br i1 %%temp_result, label %%%s, label %%%s", thenLabel, elseLabel)
+		g.emit("br i1 %s, label %%%s, label %%%s", conditionReg, thenLabel, elseLabel)
 	} else {
-		g.emit("br i1 %%temp_result, label %%%s, label %%%s", thenLabel, endLabel)
+		g.emit("br i1 %s, label %%%s, label %%%s", conditionReg, thenLabel, endLabel)
 	}
 
 	// Then block
@@ -320,7 +321,24 @@ func (g *Generator) VisitIfStmt(node *domain.IfStmt) error {
 	if err := node.ThenStmt.Accept(g); err != nil {
 		return err
 	}
-	g.emit("br label %%%s", endLabel)
+
+	// Check if the then block ends with a return statement
+	// If so, don't add a branch to avoid unreachable code
+	outputStr := g.output.String()
+	lines := strings.Split(outputStr, "\n")
+	lastNonEmptyLine := ""
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line != "" {
+			lastNonEmptyLine = line
+			break
+		}
+	}
+
+	thenHasReturn := strings.HasPrefix(lastNonEmptyLine, "ret ")
+	if !thenHasReturn {
+		g.emit("br label %%%s", endLabel)
+	}
 
 	// Else block (if exists)
 	if node.ElseStmt != nil {
@@ -330,13 +348,37 @@ func (g *Generator) VisitIfStmt(node *domain.IfStmt) error {
 		if err := node.ElseStmt.Accept(g); err != nil {
 			return err
 		}
-		g.emit("br label %%%s", endLabel)
+
+		// Check if the else block ends with a return statement
+		outputStr = g.output.String()
+		lines = strings.Split(outputStr, "\n")
+		lastNonEmptyLine = ""
+		for i := len(lines) - 1; i >= 0; i-- {
+			line := strings.TrimSpace(lines[i])
+			if line != "" {
+				lastNonEmptyLine = line
+				break
+			}
+		}
+
+		elseHasReturn := strings.HasPrefix(lastNonEmptyLine, "ret ")
+		if !elseHasReturn {
+			g.emit("br label %%%s", endLabel)
+		}
 	}
 
-	// End block
-	g.indentLevel--
-	g.emit("%s:", endLabel)
-	g.indentLevel++
+	// Only emit the end block if it's reachable
+	// (i.e., if at least one branch doesn't end with return)
+	needsEndBlock := !thenHasReturn || (node.ElseStmt != nil && !strings.HasPrefix(lastNonEmptyLine, "ret "))
+	if node.ElseStmt == nil {
+		needsEndBlock = true // Always need end block if there's no else
+	}
+
+	if needsEndBlock {
+		g.indentLevel--
+		g.emit("%s:", endLabel)
+		g.indentLevel++
+	}
 
 	return nil
 }
@@ -356,7 +398,8 @@ func (g *Generator) VisitWhileStmt(node *domain.WhileStmt) error {
 	if err := node.Condition.Accept(g); err != nil {
 		return err
 	}
-	g.emit("br i1 %%temp_result, label %%%s, label %%%s", bodyLabel, endLabel)
+	conditionReg := g.currentValue
+	g.emit("br i1 %s, label %%%s, label %%%s", conditionReg, bodyLabel, endLabel)
 
 	// Body block
 	g.indentLevel--
@@ -399,7 +442,8 @@ func (g *Generator) VisitForStmt(node *domain.ForStmt) error {
 		if err := node.Condition.Accept(g); err != nil {
 			return err
 		}
-		g.emit("br i1 %%temp_result, label %%%s, label %%%s", bodyLabel, endLabel)
+		conditionReg := g.currentValue
+		g.emit("br i1 %s, label %%%s, label %%%s", conditionReg, bodyLabel, endLabel)
 	} else {
 		g.emit("br label %%%s", bodyLabel)
 	}
@@ -568,30 +612,31 @@ func (g *Generator) VisitCallExpr(node *domain.CallExpr) error {
 		argType := node.Args[0].GetType().String()
 		switch argType {
 		case "int":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_int, i32 0, i32 0), i32 %%temp_result)")
+			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_int, i32 0, i32 0), i32 %s)", g.currentValue)
 		case "double":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_double, i32 0, i32 0), double %%temp_result)")
+			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print_double, i32 0, i32 0), double %s)", g.currentValue)
 		case "string":
-			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print, i32 0, i32 0), i8* %%temp_result)")
+			g.emit("call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.print, i32 0, i32 0), i8* %s)", g.currentValue)
 		}
-		g.emit("%%temp_result = i32 0") // printf returns an int
+		// Generate a temp register for the printf result
+		tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
+		g.labelCounter++
+		g.emit("%s = i32 0", tempReg) // printf returns an int
+		g.currentValue = tempReg
+		g.currentType = "i32"
 		return nil
 	}
 
 	// Generate arguments
-	argTypes := ""
-	args := ""
-	for i, arg := range node.Args {
+	var argValues []string
+	var argTypes []string
+	for _, arg := range node.Args {
 		if err := arg.Accept(g); err != nil {
 			return err
 		}
-		if i > 0 {
-			argTypes += ", "
-			args += ", "
-		}
 		argType := g.getLLVMType(arg.GetType())
-		argTypes += argType
-		args += fmt.Sprintf("%s %%temp_result", argType)
+		argTypes = append(argTypes, argType)
+		argValues = append(argValues, fmt.Sprintf("%s %s", argType, g.currentValue))
 	}
 
 	// Determine function name (assume identifier)
@@ -600,12 +645,25 @@ func (g *Generator) VisitCallExpr(node *domain.CallExpr) error {
 		funcName = ident.Name
 	}
 
+	// Generate unique temporary register for the result
+	tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
+	g.labelCounter++
+
 	// Generate function call
 	returnType := g.getLLVMType(node.GetType())
+	argsStr := ""
+	if len(argValues) > 0 {
+		argsStr = fmt.Sprintf("%s", strings.Join(argValues, ", "))
+	}
+
 	if returnType == "void" {
-		g.emit("call void @%s(%s)", funcName, args)
+		g.emit("call void @%s(%s)", funcName, argsStr)
+		g.currentValue = ""
+		g.currentType = "void"
 	} else {
-		g.emit("%%temp_result = call %s @%s(%s)", returnType, funcName, args)
+		g.emit("%s = call %s @%s(%s)", tempReg, returnType, funcName, argsStr)
+		g.currentValue = tempReg
+		g.currentType = returnType
 	}
 
 	return nil

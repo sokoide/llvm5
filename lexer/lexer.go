@@ -113,6 +113,11 @@ func (l *StaticLangLexer) NextToken() interfaces.Token {
 		l.advance()
 		return interfaces.Token{Type: interfaces.TokenStar, Value: "*", Location: position}
 	case '/':
+		if l.next == '/' {
+			// Single-line comment, skip to end of line
+			l.skipComment()
+			return l.NextToken() // Get next token after comment
+		}
 		l.advance()
 		return interfaces.Token{Type: interfaces.TokenSlash, Value: "/", Location: position}
 	case '%':
@@ -400,6 +405,24 @@ func (l *StaticLangLexer) readIdentifier(position domain.SourcePosition) interfa
 		Type:     tokenType,
 		Value:    str,
 		Location: position,
+	}
+}
+
+// skipComment skips a single-line comment starting with //
+func (l *StaticLangLexer) skipComment() {
+	// Skip the first '/'
+	l.advance()
+	// Skip the second '/'
+	l.advance()
+
+	// Skip until end of line or end of input
+	for l.current != '\n' && l.current != 0 {
+		l.advance()
+	}
+
+	// Skip the newline character if present
+	if l.current == '\n' {
+		l.advance()
 	}
 }
 

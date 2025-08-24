@@ -12,6 +12,5 @@ func fibonacci(n int) -> int {
 func main() -> int {
     var num int = 10;
     var result int = fibonacci(num);
-    print(result);
-    return 0;
+    return result;
 }
