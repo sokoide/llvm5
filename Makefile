@@ -27,7 +27,7 @@ CFLAGS=-O2 -Wall -Wextra
 LDFLAGS=-ldflags "-X main.Version=$(shell git describe --tags --always --dirty 2>/dev/null || echo 'dev') -X main.BuildDate=$(shell date -u '+%Y-%m-%d_%H:%M:%S')"
 
 # Default target
-all: fmt vet test build
+all: fmt vet test-with-coverage build
 
 # Build the compiler
 build:
@@ -67,6 +67,15 @@ build-windows:
 test:
 	@echo "Running tests..."
 	$(GOTEST) -v ./...
+
+# Run tests with coverage and generate report
+test-with-coverage:
+	@echo "Running tests with coverage..."
+	@mkdir -p $(COVERAGE_DIR)
+	$(GOTEST) -coverprofile=$(COVERAGE_DIR)/coverage.out ./...
+	$(GOCMD) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
+	$(GOCMD) tool cover -func=$(COVERAGE_DIR)/coverage.out
+	@echo "Coverage report generated at $(COVERAGE_DIR)/coverage.html"
 
 # Run tests with coverage
 test-coverage:
@@ -161,7 +170,8 @@ help:
 	@echo "  build-darwin  - Build for macOS"
 	@echo "  build-windows - Build for Windows"
 	@echo "  test          - Run tests"
-	@echo "  test-coverage - Run tests with coverage report"
+	@echo "  test-with-coverage - Run tests with coverage and display results"
+	@echo "  test-coverage - Run tests with coverage report (HTML only)"
 	@echo "  bench         - Run benchmarks"
 	@echo "  fmt           - Format code"
 	@echo "  vet           - Run go vet"
