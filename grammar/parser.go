@@ -727,7 +727,7 @@ yydefault:
 //line staticlang.y:108
 		{
 			yyVAL.decl = &domain.VarDeclStmt{
-				BaseNode:    domain.BaseNode{Location: yyDollar[1].typ.GetLocation()},
+				BaseNode:    domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
 				Name:        yyDollar[2].str,
 				Type_:       yyDollar[1].typ,
 				Initializer: nil,
@@ -738,7 +738,7 @@ yydefault:
 //line staticlang.y:116
 		{
 			yyVAL.decl = &domain.VarDeclStmt{
-				BaseNode:    domain.BaseNode{Location: yyDollar[1].typ.GetLocation()},
+				BaseNode:    domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
 				Name:        yyDollar[2].str,
 				Type_:       yyDollar[1].typ,
 				Initializer: yyDollar[4].expr,
@@ -749,7 +749,7 @@ yydefault:
 //line staticlang.y:126
 		{
 			yyVAL.decl = &domain.FunctionDecl{
-				BaseNode:   domain.BaseNode{Location: yyDollar[1].typ.GetLocation()},
+				BaseNode:   domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
 				Name:       yyDollar[2].str,
 				Parameters: []domain.Parameter{},
 				ReturnType: yyDollar[1].typ,

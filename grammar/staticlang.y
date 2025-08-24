@@ -107,7 +107,7 @@ declaration:
 global_var_decl:
  	type identifier SEMICOLON {
  		$$ = &domain.VarDeclStmt{
- 			BaseNode:    domain.BaseNode{Location: $1.GetLocation()},
+ 			BaseNode:    domain.BaseNode{Location: getLocationFromString($2)},
  			Name:        $2,
  			Type_:       $1,
  			Initializer: nil,
@@ -115,7 +115,7 @@ global_var_decl:
  	}
  	| type identifier ASSIGN expression SEMICOLON {
  		$$ = &domain.VarDeclStmt{
- 			BaseNode:    domain.BaseNode{Location: $1.GetLocation()},
+ 			BaseNode:    domain.BaseNode{Location: getLocationFromString($2)},
  			Name:        $2,
  			Type_:       $1,
  			Initializer: $4,
@@ -125,7 +125,7 @@ global_var_decl:
 main_function:
  	type identifier LEFT_PAREN RIGHT_PAREN block_stmt {
  		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: $1.GetLocation()},
+ 			BaseNode:   domain.BaseNode{Location: getLocationFromString($2)},
  			Name:       $2,
  			Parameters: []domain.Parameter{},
  			ReturnType: $1,

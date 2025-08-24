@@ -28,22 +28,22 @@ type StaticLangLexer struct {
 
 // Keywords maps keyword strings to their token types
 var keywords = map[string]interfaces.TokenType{
-	"func":    interfaces.TokenFunc,
+	"func":     interfaces.TokenFunc,
 	"function": interfaces.TokenFunc, // Alternative syntax
-	"struct":  interfaces.TokenStruct,
-	"var":     interfaces.TokenVar,
-	"if":      interfaces.TokenIf,
-	"else":    interfaces.TokenElse,
-	"while":   interfaces.TokenWhile,
-	"for":     interfaces.TokenFor,
-	"return":  interfaces.TokenReturn,
-	"true":    interfaces.TokenTrue,
-	"false":   interfaces.TokenFalse,
-	"int":     interfaces.TokenInt,
-	"double":  interfaces.TokenFloat,
-	"string":  interfaces.TokenString,
-	"bool":    interfaces.TokenBool,
-	"print":   interfaces.TokenIdentifier, // Built-in function
+	"struct":   interfaces.TokenStruct,
+	"var":      interfaces.TokenVar,
+	"if":       interfaces.TokenIf,
+	"else":     interfaces.TokenElse,
+	"while":    interfaces.TokenWhile,
+	"for":      interfaces.TokenFor,
+	"return":   interfaces.TokenReturn,
+	"true":     interfaces.TokenTrue,
+	"false":    interfaces.TokenFalse,
+	"int":      interfaces.TokenInt,
+	"double":   interfaces.TokenFloat,
+	"string":   interfaces.TokenString,
+	"bool":     interfaces.TokenBool,
+	"print":    interfaces.TokenIdentifier, // Built-in function
 }
 
 // NewLexer creates a new StaticLang lexer
