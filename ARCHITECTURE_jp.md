@@ -12,13 +12,13 @@ graph TB
 
         subgraph "アプリケーション層"
             CLI["CLI インターフェース<br/>cmd/staticlang"]
-            Pipeline["コンパイラパイプライン"]
-            Factory["コンポーネントファクトリー"]
-            Config["設定管理"]
+            Pipeline["コンパイラパイプライン<br/>internal/application"]
+            Factory["コンポーネントファクトリー<br/>internal/application"]
+            Config["設定管理<br/>internal/application"]
         end
 
         subgraph "インターフェース層"
-            CompilerIntf["CompilerPipeline<br/>インターフェース"]
+            CompilerIntf["コンパイラインターフェース<br/>internal/interfaces"]
             LexerIntf["Lexer インターフェース"]
             ParserIntf["Parser インターフェース"]
             AnalyzerIntf["SemanticAnalyzer<br/>インターフェース"]
@@ -27,17 +27,17 @@ graph TB
         end
 
         subgraph "ドメイン層"
-            AST["AST ノード定義"]
-            TypeSystem["型システム"]
-            BusinessLogic["コアビジネスロジック"]
-            ErrorDefs["エラー定義"]
+            AST["AST & 型<br/>internal/domain"]
+            TypeSystem["型システム<br/>internal/domain"]
+            BusinessLogic["コアビジネスロジック<br/>internal/domain"]
+            ErrorDefs["エラー定義<br/>internal/domain"]
         end
 
         subgraph "インフラストラクチャ層"
-            LLVMBackend["LLVM バックエンド実装"]
-            SymbolTable["シンボルテーブル実装"]
-            MemoryMgr["メモリ管理"]
-            ErrorReporter["エラーレポート"]
+            LLVMBackend["LLVM バックエンド<br/>internal/infrastructure"]
+            SymbolTable["シンボルテーブル<br/>internal/infrastructure"]
+            MemoryMgr["メモリ管理<br/>internal/infrastructure"]
+            ErrorReporter["エラーレポート<br/>internal/infrastructure"]
         end
 
         CLI --> Pipeline
@@ -432,24 +432,24 @@ goyacc -o parser.go grammar.y
 
 ```
 staticlang/
-├── cmd/staticlang/           # CLI アプリケーション
-├── internal/
-│   ├── application/          # アプリケーション層
-│   │   ├── compiler_pipeline.go
-│   │   └── compiler_factory.go
-│   ├── domain/               # ドメイン層
-│   │   ├── ast.go
-│   │   ├── types.go
-│   │   └── type_system.go
-│   ├── interfaces/           # インターフェース定義
-│   │   └── compiler.go
-│   └── infrastructure/       # インフラストラクチャ層
-│       ├── llvm_backend.go
-│       ├── symboltable.go
-│       ├── error_reporter.go
-│       └── memory_manager.go
+├── cmd/staticlang/           # CLI アプリケーションエントリーポイント
+├── internal/                 # 内部パッケージ（Clean Architecture 層）
+│   ├── application/          # アプリケーション層 - ユースケースのオーケストレーション
+│   │   ├── compiler_pipeline.go    # メインコンパイルパイプライン
+│   │   └── compiler_factory.go     # コンポーネントファクトリーと設定
+│   ├── domain/               # ドメイン層 - コアビジネスロジック
+│   │   ├── ast.go                 # AST ノード定義
+│   │   ├── types.go               # 型システム定義
+│   │   └── type_system.go         # 型システム実装
+│   ├── interfaces/           # インターフェース層 - 契約と抽象化
+│   │   └── compiler.go            # コンパイラコンポーネントインターフェース
+│   └── infrastructure/       # インフラストラクチャ層 - 外部依存
+│       ├── llvm_backend.go         # LLVM バックエンド実装
+│       ├── symboltable.go          # シンボルテーブル実装
+│       ├── error_reporter.go       # エラーレポート実装
+│       └── memory_manager.go       # メモリ管理実装
 ├── examples/                 # サンプルプログラム
-├── tests/                    # テストファイル
+├── tests/                    # テストファイルとスイート
 └── docs/                     # 追加ドキュメント
 ```
 

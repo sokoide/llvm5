@@ -12,13 +12,13 @@ graph TB
 
         subgraph "Application Layer"
             CLI["CLI Interface<br/>cmd/staticlang"]
-            Pipeline["Compiler Pipeline"]
-            Factory["Component Factory"]
-            Config["Configuration Management"]
+            Pipeline["Compiler Pipeline<br/>internal/application"]
+            Factory["Component Factory<br/>internal/application"]
+            Config["Configuration Management<br/>internal/application"]
         end
 
         subgraph "Interface Layer"
-            CompilerIntf["CompilerPipeline<br/>Interface"]
+            CompilerIntf["Compiler Interfaces<br/>internal/interfaces"]
             LexerIntf["Lexer Interface"]
             ParserIntf["Parser Interface"]
             AnalyzerIntf["SemanticAnalyzer<br/>Interface"]
@@ -27,17 +27,17 @@ graph TB
         end
 
         subgraph "Domain Layer"
-            AST["AST Node Definitions"]
-            TypeSystem["Type System"]
-            BusinessLogic["Core Business Logic"]
-            ErrorDefs["Error Definitions"]
+            AST["AST & Types<br/>internal/domain"]
+            TypeSystem["Type System<br/>internal/domain"]
+            BusinessLogic["Core Business Logic<br/>internal/domain"]
+            ErrorDefs["Error Definitions<br/>internal/domain"]
         end
 
         subgraph "Infrastructure Layer"
-            LLVMBackend["LLVM Backend Implementation"]
-            SymbolTable["Symbol Table Implementation"]
-            MemoryMgr["Memory Management"]
-            ErrorReporter["Error Reporting"]
+            LLVMBackend["LLVM Backend<br/>internal/infrastructure"]
+            SymbolTable["Symbol Table<br/>internal/infrastructure"]
+            MemoryMgr["Memory Management<br/>internal/infrastructure"]
+            ErrorReporter["Error Reporting<br/>internal/infrastructure"]
         end
 
         CLI --> Pipeline
@@ -320,24 +320,24 @@ goyacc -o parser.go grammar.y
 
 ```
 staticlang/
-├── cmd/staticlang/           # CLI application
-├── internal/
-│   ├── application/          # Application layer
-│   │   ├── compiler_pipeline.go
-│   │   └── compiler_factory.go
-│   ├── domain/               # Domain layer
-│   │   ├── ast.go
-│   │   ├── types.go
-│   │   └── type_system.go
-│   ├── interfaces/           # Interface definitions
-│   │   └── compiler.go
-│   └── infrastructure/       # Infrastructure layer
-│       ├── llvm_backend.go
-│       ├── symboltable.go
-│       ├── error_reporter.go
-│       └── memory_manager.go
+├── cmd/staticlang/           # CLI application entry point
+├── internal/                 # Internal packages (Clean Architecture layers)
+│   ├── application/          # Application layer - Use case orchestration
+│   │   ├── compiler_pipeline.go    # Main compilation pipeline
+│   │   └── compiler_factory.go     # Component factory and configuration
+│   ├── domain/               # Domain layer - Core business logic
+│   │   ├── ast.go                 # AST node definitions
+│   │   ├── types.go               # Type system definitions
+│   │   └── type_system.go         # Type system implementation
+│   ├── interfaces/           # Interface layer - Contracts and abstractions
+│   │   └── compiler.go            # Compiler component interfaces
+│   └── infrastructure/       # Infrastructure layer - External concerns
+│       ├── llvm_backend.go         # LLVM backend implementation
+│       ├── symboltable.go          # Symbol table implementation
+│       ├── error_reporter.go       # Error reporting implementation
+│       └── memory_manager.go       # Memory management implementation
 ├── examples/                 # Example programs
-├── tests/                    # Test files
+├── tests/                    # Test files and suites
 └── docs/                     # Additional documentation
 ```
 
