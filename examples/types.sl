@@ -3,18 +3,18 @@
 
 int globalCounter = 0;
 
-function testTypes() -> int {
-    int x = 42;
-    double pi = 3.14159;
-    string name = "StaticLang";
+func testTypes() -> int {
+    var x int = 42;
+    var pi float = 3.14159;
+    var name string = "StaticLang";
     
     print(x);
     print(pi);
     print(name);
     
     // Arithmetic operations
-    int sum = x + 10;
-    double product = pi * 2.0;
+    var sum int = x + 10;
+    var product float = pi * 2.0;
     
     print(sum);
     print(product);
@@ -32,7 +32,7 @@ function testTypes() -> int {
 }
 
 int main() {
-    int result = testTypes();
+    var result int = testTypes();
     
     // Global variable usage
     globalCounter = result;

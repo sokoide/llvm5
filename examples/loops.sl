@@ -3,25 +3,25 @@
 
 int main() {
     // For loop example
-    for (int i = 0; i < 5; i++) {
+    for (var i int = 0; i < 5; i = i + 1;) {
         print(i);
     }
     
     // While loop example
-    int count = 10;
+    var count int = 10;
     while (count > 0) {
         print(count);
         count = count - 1;
     }
     
     // Nested scope example
-    int outer = 100;
+    var outer int = 100;
     if (outer > 50) {
-        int inner = outer + 50;
+        var inner int = outer + 50;
         print(inner);
         
-        for (int j = 0; j < 3; j++) {
-            int nested = inner + j;
+        for (var j int = 0; j < 3; j = j + 1;) {
+            var nested int = inner + j;
             print(nested);
         }
     }

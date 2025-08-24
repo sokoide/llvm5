@@ -1,7 +1,7 @@
 // StaticLang Fibonacci Example
 // Demonstrates functions, recursion, and control flow
 
-function fibonacci(int n) -> int {
+func fibonacci(n int) -> int {
     if (n <= 1) {
         return n;
     } else {
@@ -10,8 +10,8 @@ function fibonacci(int n) -> int {
 }
 
 int main() {
-    int num = 10;
-    int result = fibonacci(num);
+    var num int = 10;
+    var result int = fibonacci(num);
     print(result);
     return 0;
 }
