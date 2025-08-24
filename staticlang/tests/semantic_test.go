@@ -1,0 +1,477 @@
+package tests
+
+import (
+	"testing"
+
+	"github.com/sokoide/llvm5/staticlang/internal/domain"
+	"github.com/sokoide/llvm5/staticlang/internal/infrastructure"
+	"github.com/sokoide/llvm5/staticlang/semantic"
+)
+
+func TestSemanticAnalysisBasicProgram(t *testing.T) {
+	// Create a simple program AST
+	program := &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.ReturnStmt{
+							Expression: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "0",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Set up semantic analyzer
+	analyzer := semantic.NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Analyze the program
+	err := analyzer.Analyze(program)
+	if err != nil {
+		t.Errorf("Semantic analysis failed: %v", err)
+	}
+
+	// Check that main function was registered in symbol table
+	mainSymbol := symbolTable.Lookup("main")
+	if mainSymbol == nil {
+		t.Error("main function not found in symbol table")
+	} else {
+		if mainSymbol.Kind != infrastructure.FunctionSymbol {
+			t.Errorf("main symbol should be a function, got %v", mainSymbol.Kind)
+		}
+	}
+}
+
+func TestSemanticAnalysisVariableDeclaration(t *testing.T) {
+	// Program with variable declaration
+	program := &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.VarDeclStmt{
+							Name: "x",
+							Type: domain.NewIntType(),
+							Initializer: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "42",
+							},
+						},
+						&domain.ReturnStmt{
+							Expression: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "0",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	analyzer := semantic.NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	err := analyzer.Analyze(program)
+	if err != nil {
+		t.Errorf("Semantic analysis failed: %v", err)
+	}
+}
+
+func TestSemanticAnalysisTypeChecking(t *testing.T) {
+	tests := []struct {
+		name        string
+		program     *domain.Program
+		shouldError bool
+		description string
+	}{
+		{
+			name: "correct type assignment",
+			program: createProgramWithAssignment("x", domain.NewIntType(), &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "42",
+			}),
+			shouldError: false,
+			description: "int variable assigned int literal should succeed",
+		},
+		{
+			name: "type mismatch assignment",
+			program: createProgramWithAssignment("x", domain.NewIntType(), &domain.LiteralExpr{
+				Type:  domain.NewStringType(),
+				Value: "\"hello\"",
+			}),
+			shouldError: true,
+			description: "int variable assigned string literal should fail",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			analyzer := semantic.NewAnalyzer()
+			symbolTable := infrastructure.NewSymbolTable()
+			typeRegistry := domain.NewTypeRegistry()
+			errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+			analyzer.SetSymbolTable(symbolTable)
+			analyzer.SetTypeRegistry(typeRegistry)
+			analyzer.SetErrorReporter(errorReporter)
+
+			err := analyzer.Analyze(test.program)
+
+			if test.shouldError && err == nil {
+				t.Errorf("Expected error for %s, but got none", test.description)
+			} else if !test.shouldError && err != nil {
+				t.Errorf("Unexpected error for %s: %v", test.description, err)
+			}
+		})
+	}
+}
+
+func TestSemanticAnalysisVariableScope(t *testing.T) {
+	// Program with nested scopes
+	program := &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.VarDeclStmt{
+							Name: "x",
+							Type: domain.NewIntType(),
+							Initializer: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "10",
+							},
+						},
+						&domain.IfStmt{
+							Condition: &domain.LiteralExpr{
+								Type:  domain.NewBoolType(),
+								Value: "true",
+							},
+							ThenStmt: &domain.BlockStmt{
+								Statements: []domain.Statement{
+									&domain.VarDeclStmt{
+										Name: "y",
+										Type: domain.NewIntType(),
+										Initializer: &domain.LiteralExpr{
+											Type:  domain.NewIntType(),
+											Value: "20",
+										},
+									},
+								},
+							},
+						},
+						&domain.ReturnStmt{
+							Expression: &domain.IdentifierExpr{
+								Name: "x",
+								Type: domain.NewIntType(),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	analyzer := semantic.NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	err := analyzer.Analyze(program)
+	if err != nil {
+		t.Errorf("Semantic analysis failed: %v", err)
+	}
+
+	// Variable 'x' should be accessible in main scope
+	xSymbol := symbolTable.Lookup("x")
+	if xSymbol == nil {
+		t.Error("Variable 'x' should be accessible in main scope")
+	}
+}
+
+func TestSemanticAnalysisFunctionCalls(t *testing.T) {
+	// Program with function call
+	program := &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name: "add",
+				Parameters: []*domain.Parameter{
+					{Name: "a", Type: domain.NewIntType()},
+					{Name: "b", Type: domain.NewIntType()},
+				},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.ReturnStmt{
+							Expression: &domain.BinaryExpr{
+								Left: &domain.IdentifierExpr{
+									Name: "a",
+									Type: domain.NewIntType(),
+								},
+								Operator: "+",
+								Right: &domain.IdentifierExpr{
+									Name: "b",
+									Type: domain.NewIntType(),
+								},
+							},
+						},
+					},
+				},
+			},
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.ExprStmt{
+							Expression: &domain.CallExpr{
+								Function: "add",
+								Arguments: []domain.Expression{
+									&domain.LiteralExpr{
+										Type:  domain.NewIntType(),
+										Value: "5",
+									},
+									&domain.LiteralExpr{
+										Type:  domain.NewIntType(),
+										Value: "3",
+									},
+								},
+							},
+						},
+						&domain.ReturnStmt{
+							Expression: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "0",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	analyzer := semantic.NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	err := analyzer.Analyze(program)
+	if err != nil {
+		t.Errorf("Semantic analysis failed: %v", err)
+	}
+
+	// Both functions should be in symbol table
+	addSymbol := symbolTable.Lookup("add")
+	if addSymbol == nil {
+		t.Error("Function 'add' not found in symbol table")
+	}
+
+	mainSymbol := symbolTable.Lookup("main")
+	if mainSymbol == nil {
+		t.Error("Function 'main' not found in symbol table")
+	}
+}
+
+func TestSemanticAnalysisUndeclaredVariable(t *testing.T) {
+	// Program using undeclared variable
+	program := &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.ReturnStmt{
+							Expression: &domain.IdentifierExpr{
+								Name: "undeclaredVar",
+								Type: domain.NewIntType(),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	analyzer := semantic.NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	err := analyzer.Analyze(program)
+	// This should produce an error for undeclared variable
+	if err == nil {
+		t.Error("Expected error for undeclared variable, but got none")
+	}
+}
+
+func TestSemanticAnalysisBinaryExpressions(t *testing.T) {
+	tests := []struct {
+		name        string
+		left        domain.Expression
+		operator    string
+		right       domain.Expression
+		shouldError bool
+		description string
+	}{
+		{
+			name: "int addition",
+			left: &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "5",
+			},
+			operator: "+",
+			right: &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "3",
+			},
+			shouldError: false,
+			description: "int + int should be valid",
+		},
+		{
+			name: "type mismatch addition",
+			left: &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "5",
+			},
+			operator: "+",
+			right: &domain.LiteralExpr{
+				Type:  domain.NewStringType(),
+				Value: "\"hello\"",
+			},
+			shouldError: true,
+			description: "int + string should be invalid",
+		},
+		{
+			name: "int comparison",
+			left: &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "5",
+			},
+			operator: ">",
+			right: &domain.LiteralExpr{
+				Type:  domain.NewIntType(),
+				Value: "3",
+			},
+			shouldError: false,
+			description: "int > int should be valid",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			program := &domain.Program{
+				Declarations: []domain.Declaration{
+					&domain.FunctionDecl{
+						Name:       "main",
+						Parameters: []*domain.Parameter{},
+						ReturnType: domain.NewIntType(),
+						Body: &domain.BlockStmt{
+							Statements: []domain.Statement{
+								&domain.ExprStmt{
+									Expression: &domain.BinaryExpr{
+										Left:     test.left,
+										Operator: test.operator,
+										Right:    test.right,
+									},
+								},
+								&domain.ReturnStmt{
+									Expression: &domain.LiteralExpr{
+										Type:  domain.NewIntType(),
+										Value: "0",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			analyzer := semantic.NewAnalyzer()
+			symbolTable := infrastructure.NewSymbolTable()
+			typeRegistry := domain.NewTypeRegistry()
+			errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+			analyzer.SetSymbolTable(symbolTable)
+			analyzer.SetTypeRegistry(typeRegistry)
+			analyzer.SetErrorReporter(errorReporter)
+
+			err := analyzer.Analyze(program)
+
+			if test.shouldError && err == nil {
+				t.Errorf("Expected error for %s, but got none", test.description)
+			} else if !test.shouldError && err != nil {
+				t.Errorf("Unexpected error for %s: %v", test.description, err)
+			}
+		})
+	}
+}
+
+// Helper function to create a program with a variable assignment
+func createProgramWithAssignment(varName string, varType domain.Type, initializer domain.Expression) *domain.Program {
+	return &domain.Program{
+		Declarations: []domain.Declaration{
+			&domain.FunctionDecl{
+				Name:       "main",
+				Parameters: []*domain.Parameter{},
+				ReturnType: domain.NewIntType(),
+				Body: &domain.BlockStmt{
+					Statements: []domain.Statement{
+						&domain.VarDeclStmt{
+							Name:        varName,
+							Type:        varType,
+							Initializer: initializer,
+						},
+						&domain.ReturnStmt{
+							Expression: &domain.LiteralExpr{
+								Type:  domain.NewIntType(),
+								Value: "0",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
