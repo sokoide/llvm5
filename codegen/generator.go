@@ -18,12 +18,16 @@ type Generator struct {
 	indentLevel   int
 	labelCounter  int
 	functionName  string
+	currentValue  string          // Holds the current expression result value
+	currentType   string          // Holds the current expression result type
+	parameters    map[string]bool // Track which identifiers are function parameters
 }
 
 // NewGenerator creates a new code generator
 func NewGenerator() *Generator {
 	return &Generator{
 		labelCounter: 0,
+		parameters:   make(map[string]bool),
 	}
 }
 
@@ -176,6 +180,12 @@ func (g *Generator) VisitFunctionDecl(node *domain.FunctionDecl) error {
 	g.functionName = node.Name
 	returnType := g.getLLVMType(node.ReturnType)
 
+	// Clear and track parameters for this function
+	g.parameters = make(map[string]bool)
+	for _, param := range node.Parameters {
+		g.parameters[param.Name] = true
+	}
+
 	// Generate function signature
 	paramStr := ""
 	for i, param := range node.Parameters {
@@ -200,11 +210,33 @@ func (g *Generator) VisitFunctionDecl(node *domain.FunctionDecl) error {
 		return err
 	}
 
-	// Ensure function has a return statement
-	if node.ReturnType.String() == "void" {
-		g.emit("ret void")
-	} else if node.Name == "main" {
-		g.emit("ret i32 0")
+	// Check if the function already has a return statement by examining the output
+	// If not, add a default return
+	outputStr := g.output.String()
+	lines := strings.Split(outputStr, "\n")
+	hasReturn := false
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line == "" || line == "}" {
+			continue
+		}
+		if strings.HasPrefix(line, "ret ") {
+			hasReturn = true
+			break
+		}
+		// If we encounter any other instruction, we assume no return
+		if line != "" {
+			break
+		}
+	}
+
+	// Only add default return if there's no explicit return
+	if !hasReturn {
+		if node.ReturnType.String() == "void" {
+			g.emit("ret void")
+		} else if node.Name == "main" {
+			g.emit("ret i32 0")
+		}
 	}
 
 	g.indentLevel--
@@ -240,9 +272,8 @@ func (g *Generator) VisitVarDeclStmt(node *domain.VarDeclStmt) error {
 		if err := node.Initializer.Accept(g); err != nil {
 			return err
 		}
-		// The expression result should be in a temporary register
-		// For now, assume it's in %temp_result
-		g.emit("store %s %%temp_result, %s* %%%s, align %d", llvmType, llvmType, node.Name, align)
+		// The expression result should be in g.currentValue
+		g.emit("store %s %s, ptr %%%s, align %d", llvmType, g.currentValue, node.Name, align)
 	}
 
 	return nil
@@ -407,7 +438,7 @@ func (g *Generator) VisitReturnStmt(node *domain.ReturnStmt) error {
 			return err
 		}
 		returnType := g.getLLVMType(node.Value.GetType())
-		g.emit("ret %s %%temp_result", returnType)
+		g.emit("ret %s %s", returnType, g.currentValue)
 	} else {
 		g.emit("ret void")
 	}
@@ -423,13 +454,17 @@ func (g *Generator) VisitBinaryExpr(node *domain.BinaryExpr) error {
 	if err := node.Left.Accept(g); err != nil {
 		return err
 	}
-	leftReg := "%temp_result"
+	leftReg := g.currentValue
 
 	// Generate right operand
 	if err := node.Right.Accept(g); err != nil {
 		return err
 	}
-	rightReg := "%temp_result"
+	rightReg := g.currentValue
+
+	// Generate unique temporary register
+	tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
+	g.labelCounter++
 
 	// Perform operation based on operator
 	resultType := g.getLLVMType(node.GetType())
@@ -437,65 +472,69 @@ func (g *Generator) VisitBinaryExpr(node *domain.BinaryExpr) error {
 	switch node.Operator {
 	case domain.Add:
 		if resultType == "i32" {
-			g.emit("%%temp_result = add i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = add i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if resultType == "double" {
-			g.emit("%%temp_result = fadd double %s, %s", leftReg, rightReg)
+			g.emit("%s = fadd double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Sub:
 		if resultType == "i32" {
-			g.emit("%%temp_result = sub i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = sub i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if resultType == "double" {
-			g.emit("%%temp_result = fsub double %s, %s", leftReg, rightReg)
+			g.emit("%s = fsub double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Mul:
 		if resultType == "i32" {
-			g.emit("%%temp_result = mul i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = mul i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if resultType == "double" {
-			g.emit("%%temp_result = fmul double %s, %s", leftReg, rightReg)
+			g.emit("%s = fmul double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Div:
 		if resultType == "i32" {
-			g.emit("%%temp_result = sdiv i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = sdiv i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if resultType == "double" {
-			g.emit("%%temp_result = fdiv double %s, %s", leftReg, rightReg)
+			g.emit("%s = fdiv double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Eq:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp eq i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp eq i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp oeq double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp oeq double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Ne:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp ne i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp ne i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp one double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp one double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Lt:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp slt i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp slt i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp olt double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp olt double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Gt:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp sgt i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp sgt i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp ogt double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp ogt double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Le:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp sle i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp sle i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp ole double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp ole double %s, %s", tempReg, leftReg, rightReg)
 		}
 	case domain.Ge:
 		if node.Left.GetType().String() == "int" {
-			g.emit("%%temp_result = icmp sge i32 %s, %s", leftReg, rightReg)
+			g.emit("%s = icmp sge i32 %s, %s", tempReg, leftReg, rightReg)
 		} else if node.Left.GetType().String() == "double" {
-			g.emit("%%temp_result = fcmp oge double %s, %s", leftReg, rightReg)
+			g.emit("%s = fcmp oge double %s, %s", tempReg, leftReg, rightReg)
 		}
 	}
+
+	// Update current value for parent expressions
+	g.currentValue = tempReg
+	g.currentType = resultType
 
 	return nil
 }
@@ -576,9 +615,25 @@ func (g *Generator) VisitIdentifierExpr(node *domain.IdentifierExpr) error {
 	varType := g.getLLVMType(node.GetType())
 	align := g.getTypeAlign(node.GetType())
 
-	// Check if it's a global or local variable
-	// For now, assume local variables use % prefix
-	g.emit("%%temp_result = load %s, %s* %%%s, align %d", varType, varType, node.Name, align)
+	// Generate a unique temporary register name
+	tempReg := fmt.Sprintf("%%temp_%d", g.labelCounter)
+	g.labelCounter++
+
+	// Determine whether to use .addr suffix based on whether it's a parameter
+	var varName string
+	if g.parameters[node.Name] {
+		// This is a function parameter, use .addr suffix
+		varName = fmt.Sprintf("%%%s.addr", node.Name)
+	} else {
+		// This is a local variable, use direct name
+		varName = fmt.Sprintf("%%%s", node.Name)
+	}
+
+	g.emit("%s = load %s, ptr %s, align %d", tempReg, varType, varName, align)
+
+	// Store the result for use by parent expressions
+	g.currentValue = tempReg
+	g.currentType = varType
 
 	return nil
 }
@@ -587,17 +642,23 @@ func (g *Generator) VisitLiteralExpr(node *domain.LiteralExpr) error {
 	switch node.GetType().String() {
 	case "int":
 		if val, ok := node.Value.(int64); ok {
-			g.emit("%%temp_result = i32 %d", val)
+			// For integer literals, we can directly use the value in ret statement
+			// But if we need a temp variable, we should allocate and store
+			g.currentValue = fmt.Sprintf("%d", val)
+			g.currentType = "i32"
 		} else {
 			// Fallback for safety, though parser should ensure int64
-			g.emit("%%temp_result = i32 %s", node.Value)
+			g.currentValue = fmt.Sprintf("%s", node.Value)
+			g.currentType = "i32"
 		}
 	case "double":
 		if val, ok := node.Value.(float64); ok {
-			g.emit("%%temp_result = double %f", val)
+			g.currentValue = fmt.Sprintf("%f", val)
+			g.currentType = "double"
 		} else {
 			// Fallback for safety
-			g.emit("%%temp_result = double %s", node.Value)
+			g.currentValue = fmt.Sprintf("%s", node.Value)
+			g.currentType = "double"
 		}
 	case "string":
 		// String literals need special handling
@@ -605,7 +666,8 @@ func (g *Generator) VisitLiteralExpr(node *domain.LiteralExpr) error {
 		length := len(strValue) + 1
 		labelName := g.newLabel("str")
 		g.emit("@%s = private unnamed_addr constant [%d x i8] c\"%s\\00\", align 1", labelName, length, strValue)
-		g.emit("%%temp_result = i8* getelementptr inbounds ([%d x i8], [%d x i8]* @%s, i32 0, i32 0)", length, length, labelName)
+		g.currentValue = fmt.Sprintf("getelementptr inbounds ([%d x i8], [%d x i8]* @%s, i32 0, i32 0)", length, length, labelName)
+		g.currentType = "i8*"
 	}
 	return nil
 }

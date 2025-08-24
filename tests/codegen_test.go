@@ -418,12 +418,9 @@ func TestRealCodeGeneratorThroughFactory(t *testing.T) {
 		t.Error("Generated code should contain main function definition")
 	}
 
-	// Check that the literal 42 is assigned to temp_result and then returned
-	if !strings.Contains(result, "%temp_result = i32 42") {
-		t.Error("Generated code should contain literal 42 assignment")
-	}
-	if !strings.Contains(result, "ret i32 %temp_result") {
-		t.Error("Generated code should return the temp_result register")
+	// Check that the literal 42 is returned directly (new correct format)
+	if !strings.Contains(result, "ret i32 42") {
+		t.Error("Generated code should contain direct return of literal 42")
 	}
 
 	if !strings.Contains(result, "target triple") {
@@ -433,6 +430,11 @@ func TestRealCodeGeneratorThroughFactory(t *testing.T) {
 	// Check that it's real LLVM IR, not mock output
 	if strings.Contains(result, "; Mock generated code") {
 		t.Error("Generated code should not contain mock output")
+	}
+
+	// Verify there's no redundant return statement
+	if strings.Count(result, "ret i32") != 1 {
+		t.Error("Generated code should contain exactly one return statement")
 	}
 
 	t.Logf("Generated LLVM IR:\n%s", result)
