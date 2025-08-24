@@ -1,12 +1,15 @@
 package tests
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/sokoide/llvm5/codegen"
+	"github.com/sokoide/llvm5/internal/application"
 	"github.com/sokoide/llvm5/internal/domain"
 	"github.com/sokoide/llvm5/internal/infrastructure"
+	"github.com/sokoide/llvm5/internal/interfaces"
 )
 
 func TestCodeGenBasicProgram(t *testing.T) {
@@ -349,4 +352,88 @@ func TestCodeGenControlFlow(t *testing.T) {
 	if !strings.Contains(result, "if.else") {
 		t.Error("Generated code should contain else block label")
 	}
+}
+
+// TestRealCodeGeneratorThroughFactory tests the real LLVM IR generator through the application factory
+func TestRealCodeGeneratorThroughFactory(t *testing.T) {
+	// Create a factory with real components (not mock)
+	config := application.DefaultCompilerConfig()
+	config.UseMockComponents = false // Use real components
+
+	factory := application.NewCompilerFactory(config)
+
+	// Get the real code generator through the factory
+	codeGenerator := factory.CreateCodeGenerator()
+
+	// Verify it's the real generator, not mock
+	if _, ok := codeGenerator.(*infrastructure.RealLLVMIRGenerator); !ok {
+		t.Error("Expected RealLLVMIRGenerator, but got a different type")
+	}
+
+	// Create a simple program AST
+	mainFunc := &domain.FunctionDecl{
+		Name:       "main",
+		Parameters: []domain.Parameter{},
+		ReturnType: domain.NewIntType(),
+		Body: &domain.BlockStmt{
+			Statements: []domain.Statement{
+				&domain.ReturnStmt{
+					Value: &domain.LiteralExpr{
+						Type_: domain.NewIntType(),
+						Value: "42",
+					},
+				},
+			},
+		},
+	}
+
+	program := &domain.Program{
+		Declarations: []domain.Declaration{mainFunc},
+	}
+
+	// Set types for expressions
+	mainFunc.Body.Statements[0].(*domain.ReturnStmt).Value.(*domain.LiteralExpr).SetType(domain.NewIntType())
+
+	// Set up the code generator
+	var output bytes.Buffer
+	errorReporter := infrastructure.NewConsoleErrorReporter(nil)
+
+	codeGenerator.SetOutput(&output)
+	codeGenerator.SetOptions(interfaces.CodeGenOptions{
+		OptimizationLevel: 0,
+		DebugInfo:         false,
+		TargetTriple:      "x86_64-apple-macosx10.15.0",
+	})
+	codeGenerator.SetErrorReporter(errorReporter)
+
+	// Generate code using the interface
+	err := codeGenerator.Generate(program)
+	if err != nil {
+		t.Fatalf("Real code generation failed: %v", err)
+	}
+
+	// Check that the result contains expected LLVM IR elements
+	result := output.String()
+	if !strings.Contains(result, "define i32 @main()") {
+		t.Error("Generated code should contain main function definition")
+	}
+
+	// Check that the literal 42 is assigned to temp_result and then returned
+	if !strings.Contains(result, "%temp_result = i32 42") {
+		t.Error("Generated code should contain literal 42 assignment")
+	}
+	if !strings.Contains(result, "ret i32 %temp_result") {
+		t.Error("Generated code should return the temp_result register")
+	}
+
+	if !strings.Contains(result, "target triple") {
+		t.Error("Generated code should contain target triple")
+	}
+
+	// Check that it's real LLVM IR, not mock output
+	if strings.Contains(result, "; Mock generated code") {
+		t.Error("Generated code should not contain mock output")
+	}
+
+	t.Logf("Generated LLVM IR:\n%s", result)
 }

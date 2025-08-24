@@ -142,8 +142,8 @@ func (factory *CompilerFactory) CreateCodeGenerator() interfaces.CodeGenerator {
 	if factory.config.UseMockComponents {
 		return NewMockCodeGenerator()
 	}
-	// In a real implementation, return the actual LLVM-based code generator
-	return NewMockCodeGenerator() // Placeholder
+	// Return the real LLVM IR generator
+	return infrastructure.NewRealLLVMIRGenerator()
 }
 
 // CreateErrorReporter creates an error reporter

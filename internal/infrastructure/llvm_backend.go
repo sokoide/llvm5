@@ -6,6 +6,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/sokoide/llvm5/codegen"
 	"github.com/sokoide/llvm5/internal/domain"
 	"github.com/sokoide/llvm5/internal/interfaces"
 )
@@ -664,4 +665,60 @@ func (builder *MockLLVMBuilder) CreateGEP(ptr interfaces.LLVMValue, indices []in
 func (builder *MockLLVMBuilder) Dispose() {
 	builder.instructions = builder.instructions[:0]
 	builder.currentBlock = nil
+}
+
+// RealLLVMIRGenerator implements interfaces.CodeGenerator using the existing codegen.Generator
+type RealLLVMIRGenerator struct {
+	generator     *codegen.Generator
+	output        io.Writer
+	options       interfaces.CodeGenOptions
+	errorReporter domain.ErrorReporter
+}
+
+// NewRealLLVMIRGenerator creates a new real LLVM IR generator
+func NewRealLLVMIRGenerator() *RealLLVMIRGenerator {
+	return &RealLLVMIRGenerator{
+		generator: codegen.NewGenerator(),
+	}
+}
+
+// Generate generates LLVM IR for the given AST using the real code generator
+func (cg *RealLLVMIRGenerator) Generate(ast *domain.Program) error {
+	if cg.output == nil {
+		return fmt.Errorf("output not set")
+	}
+
+	// Generate LLVM IR using the existing codegen.Generator
+	llvmIR, err := cg.generator.Generate(ast)
+	if err != nil {
+		return fmt.Errorf("failed to generate LLVM IR: %v", err)
+	}
+
+	// Write the generated LLVM IR to the output
+	_, err = cg.output.Write([]byte(llvmIR))
+	if err != nil {
+		return fmt.Errorf("failed to write LLVM IR: %v", err)
+	}
+
+	return nil
+}
+
+// SetOutput sets the output destination
+func (cg *RealLLVMIRGenerator) SetOutput(output io.Writer) {
+	cg.output = output
+}
+
+// SetOptions sets code generation options
+func (cg *RealLLVMIRGenerator) SetOptions(options interfaces.CodeGenOptions) {
+	cg.options = options
+
+	// Set the target triple in the generator if supported
+	// The codegen.Generator currently uses a fixed target triple
+	// but we could extend it to be configurable in the future
+}
+
+// SetErrorReporter sets the error reporter
+func (cg *RealLLVMIRGenerator) SetErrorReporter(reporter domain.ErrorReporter) {
+	cg.errorReporter = reporter
+	cg.generator.SetErrorReporter(reporter)
 }
