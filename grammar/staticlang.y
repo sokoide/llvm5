@@ -46,7 +46,7 @@ import (
 
 // Non-terminal types
 %type <program> program
-%type <decl> declaration function_decl struct_decl global_var_decl main_function
+%type <decl> declaration function_decl struct_decl global_var_decl
 %type <decls> declaration_list
 %type <stmt> statement var_decl_stmt assign_stmt if_stmt while_stmt for_stmt return_stmt expr_stmt block_stmt
 %type <stmts> statement_list
@@ -75,19 +75,21 @@ import (
 %%
 
 program:
-	declaration_list {
-		$$ = &domain.Program{
+	declaration_list EOF {
+		ret := &domain.Program{
 			BaseNode:     domain.BaseNode{Location: getLocation($1)},
 			Declarations: $1,
 		}
-		yylex.(*Parser).result = $$
+		yylex.(*Parser).result = ret
+		$$ = ret
 	}
 	| /* empty */ {
-		$$ = &domain.Program{
+		ret := &domain.Program{
 			BaseNode:     domain.BaseNode{},
 			Declarations: []domain.Declaration{},
 		}
-		yylex.(*Parser).result = $$
+		yylex.(*Parser).result = ret
+		$$ = ret
 	}
 
 declaration_list:
@@ -102,7 +104,6 @@ declaration:
  	function_decl { $$ = $1 }
  	| struct_decl { $$ = $1 }
  	| global_var_decl { $$ = $1 }
- 	| main_function { $$ = $1 }
 
 global_var_decl:
  	type identifier SEMICOLON {
@@ -122,54 +123,69 @@ global_var_decl:
  		}
  	}
 
-main_function:
- 	type identifier LEFT_PAREN RIGHT_PAREN block_stmt {
- 		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: getLocationFromString($2)},
- 			Name:       $2,
- 			Parameters: []domain.Parameter{},
- 			ReturnType: $1,
- 			Body:       $5.(*domain.BlockStmt),
- 		}
- 	}
+
 
 function_decl:
- 	FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt {
- 		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
- 			Name:       $2,
- 			Parameters: $4,
- 			ReturnType: $6,
- 			Body:       $7.(*domain.BlockStmt),
- 		}
- 	}
- 	| FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt {
- 		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
- 			Name:       $2,
- 			Parameters: []domain.Parameter{},
- 			ReturnType: $5,
- 			Body:       $6.(*domain.BlockStmt),
- 		}
- 	}
- 	| FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt {
- 		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
- 			Name:       $2,
- 			Parameters: $4,
- 			ReturnType: $7,
- 			Body:       $8.(*domain.BlockStmt),
- 		}
- 	}
- 	| FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt {
- 		$$ = &domain.FunctionDecl{
- 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
- 			Name:       $2,
- 			Parameters: []domain.Parameter{},
- 			ReturnType: $6,
- 			Body:       $7.(*domain.BlockStmt),
- 		}
- 	}
+  FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt {
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: $4,
+  			ReturnType: $6,
+  			Body:       $7.(*domain.BlockStmt),
+  		}
+  	}
+  	| FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt {
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: []domain.Parameter{},
+  			ReturnType: $5,
+  			Body:       $6.(*domain.BlockStmt),
+  		}
+  	}
+  	| FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN block_stmt {
+  		// Default return type is int if no explicit type is provided
+  		reg := yylex.(*Parser).typeRegistry
+  		intType, _ := reg.GetType("int")
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: $4,
+  			ReturnType: intType,
+  			Body:       $6.(*domain.BlockStmt),
+  		}
+  	}
+  	| FUNC identifier LEFT_PAREN RIGHT_PAREN block_stmt {
+  		// Default return type is int if no explicit type is provided
+  		reg := yylex.(*Parser).typeRegistry
+  		intType, _ := reg.GetType("int")
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: []domain.Parameter{},
+  			ReturnType: intType,
+  			Body:       $5.(*domain.BlockStmt),
+  		}
+  	}
+  	| FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt {
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: $4,
+  			ReturnType: $7,
+  			Body:       $8.(*domain.BlockStmt),
+  		}
+  	}
+  	| FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt {
+  		$$ = &domain.FunctionDecl{
+  			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
+  			Name:       $2,
+  			Parameters: []domain.Parameter{},
+  			ReturnType: $6,
+  			Body:       $7.(*domain.BlockStmt),
+  		}
+  	}
 
 struct_decl:
 	STRUCT identifier LEFT_BRACE struct_field_list RIGHT_BRACE {
@@ -243,12 +259,12 @@ type:
 	}
 
 statement_list:
-	statement {
-		$$ = []domain.Statement{$1}
-	}
-	| statement_list statement {
-		$$ = append($1, $2)
-	}
+  /* empty */ {
+    $$ = []domain.Statement{}
+  }
+  | statement_list statement {
+    $$ = append($1, $2)
+  }
 
 statement:
 	var_decl_stmt   { $$ = $1 }
@@ -361,12 +377,6 @@ block_stmt:
 		$$ = &domain.BlockStmt{
 			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
 			Statements: $2,
-		}
-	}
-	| LEFT_BRACE RIGHT_BRACE {
-		$$ = &domain.BlockStmt{
-			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-			Statements: []domain.Statement{},
 		}
 	}
 

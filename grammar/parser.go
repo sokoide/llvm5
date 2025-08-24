@@ -140,7 +140,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line staticlang.y:585
+//line staticlang.y:595
 
 // Helper functions
 func getLocationFromToken(token interfaces.Token) domain.SourceRange {
@@ -180,137 +180,133 @@ var yyExca = [...]int8{
 
 const yyPrivate = 57344
 
-const yyLast = 377
+const yyLast = 340
 
 var yyAct = [...]uint8{
-	108, 29, 116, 73, 160, 159, 126, 74, 118, 128,
-	51, 75, 127, 10, 42, 11, 52, 11, 158, 23,
-	24, 150, 149, 15, 16, 17, 22, 147, 13, 148,
-	132, 86, 35, 26, 11, 30, 34, 133, 37, 50,
-	11, 13, 53, 11, 55, 11, 34, 36, 58, 11,
-	59, 18, 79, 25, 83, 80, 84, 78, 12, 43,
-	44, 45, 21, 13, 82, 81, 11, 30, 85, 11,
-	13, 12, 46, 47, 13, 39, 13, 54, 76, 77,
-	166, 165, 102, 103, 123, 152, 19, 40, 125, 48,
-	104, 13, 8, 9, 151, 137, 124, 11, 13, 105,
-	12, 33, 49, 56, 136, 32, 135, 129, 87, 88,
-	89, 90, 91, 92, 93, 94, 95, 96, 97, 98,
-	99, 12, 134, 20, 161, 28, 13, 139, 62, 63,
-	64, 138, 131, 57, 31, 3, 140, 145, 14, 27,
-	100, 142, 38, 143, 144, 141, 11, 60, 61, 62,
-	63, 64, 156, 157, 153, 154, 41, 106, 155, 162,
-	163, 115, 164, 114, 113, 112, 167, 168, 43, 44,
-	45, 111, 13, 110, 109, 117, 119, 2, 120, 121,
-	122, 46, 47, 7, 39, 60, 61, 62, 63, 64,
-	65, 66, 67, 68, 69, 70, 40, 6, 48, 5,
-	80, 43, 44, 45, 146, 13, 4, 1, 117, 119,
-	0, 120, 121, 122, 46, 47, 0, 39, 60, 61,
-	62, 63, 64, 0, 0, 67, 68, 69, 70, 40,
-	0, 48, 0, 80, 130, 43, 44, 45, 0, 13,
-	0, 0, 117, 119, 0, 120, 121, 122, 46, 47,
-	0, 39, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 40, 0, 48, 0, 80, 107, 43,
-	44, 45, 0, 13, 0, 0, 117, 119, 0, 120,
-	121, 122, 46, 47, 0, 39, 0, 0, 0, 43,
-	44, 45, 0, 13, 0, 0, 0, 40, 0, 48,
-	0, 80, 46, 47, 0, 39, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 40, 0, 48,
-	101, 60, 61, 62, 63, 64, 65, 66, 67, 68,
-	69, 70, 71, 72, 43, 44, 45, 0, 13, 0,
-	0, 0, 0, 0, 0, 0, 0, 46, 47, 0,
-	39, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 40, 0, 48, 60, 61, 62, 63, 64,
-	65, 66, 67, 68, 69, 70, 71,
+	109, 73, 118, 146, 28, 74, 125, 49, 130, 75,
+	145, 120, 126, 50, 23, 131, 9, 41, 10, 157,
+	10, 22, 156, 155, 147, 15, 16, 17, 144, 86,
+	52, 59, 127, 12, 18, 34, 25, 10, 29, 33,
+	24, 48, 10, 54, 51, 10, 55, 10, 33, 21,
+	58, 10, 80, 35, 83, 82, 12, 163, 162, 78,
+	42, 43, 44, 11, 12, 12, 79, 10, 29, 19,
+	84, 10, 36, 45, 46, 149, 38, 12, 12, 7,
+	8, 148, 106, 27, 105, 102, 103, 108, 39, 134,
+	47, 158, 133, 104, 56, 132, 135, 20, 107, 10,
+	12, 12, 12, 7, 8, 54, 30, 11, 11, 32,
+	128, 76, 77, 81, 87, 88, 89, 90, 91, 92,
+	93, 94, 95, 96, 97, 98, 99, 3, 26, 31,
+	14, 100, 11, 37, 40, 142, 136, 129, 137, 13,
+	57, 85, 139, 117, 140, 141, 138, 10, 116, 153,
+	154, 115, 12, 114, 150, 151, 159, 160, 152, 161,
+	62, 63, 64, 164, 165, 42, 43, 44, 113, 12,
+	112, 111, 119, 121, 2, 122, 123, 124, 45, 46,
+	54, 38, 11, 60, 61, 62, 63, 64, 53, 6,
+	5, 4, 1, 39, 0, 47, 0, 54, 42, 43,
+	44, 143, 12, 0, 0, 119, 121, 0, 122, 123,
+	124, 45, 46, 0, 38, 60, 61, 62, 63, 64,
+	65, 66, 67, 68, 69, 70, 39, 0, 47, 0,
+	54, 110, 42, 43, 44, 0, 12, 0, 0, 119,
+	121, 0, 122, 123, 124, 45, 46, 0, 38, 0,
+	0, 0, 42, 43, 44, 0, 12, 0, 0, 0,
+	39, 0, 47, 0, 54, 45, 46, 0, 38, 60,
+	61, 62, 63, 64, 0, 0, 67, 68, 69, 70,
+	39, 0, 47, 101, 60, 61, 62, 63, 64, 65,
+	66, 67, 68, 69, 70, 71, 72, 42, 43, 44,
+	0, 12, 0, 0, 0, 0, 0, 0, 0, 0,
+	45, 46, 0, 38, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 39, 0, 47, 60, 61,
+	62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
 }
 
 var yyPact = [...]int16{
-	83, -1000, 83, -1000, -1000, -1000, -1000, -1000, 118, 118,
-	118, -1000, 47, -1000, -1000, 89, 26, -14, 14, 62,
-	90, 68, -1000, 330, 67, 62, -1000, -25, 33, -1000,
-	62, 66, -1000, -1000, 62, 10, 302, -1000, -31, 330,
-	330, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 330, 19,
-	-1000, 20, 118, 19, 62, -1000, -1000, -1000, -9, -1000,
-	330, 330, 330, 330, 330, 330, 330, 330, 330, 330,
-	330, 330, 330, 285, 330, 118, -1000, -1000, 64, -1000,
-	231, 19, 62, -1000, -1000, 19, -1000, 107, 107, -1000,
-	-1000, -1000, 199, 199, 128, 128, 128, 128, 166, 346,
-	-29, -1000, -1000, -30, -1000, -1000, 197, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, -1000, -1000, -1000, 118, -3, 88,
-	72, 70, 55, -1000, 19, -1000, -1000, 330, -1000, -1000,
-	-1000, 62, 330, -1000, 330, 330, 164, -1000, -13, -1000,
-	-1000, -11, -19, 59, 50, 330, 330, -1000, -1000, 330,
-	-1000, 265, 265, -22, -35, -36, 111, -1000, 265, 265,
-	-1000, 265, 46, 45, -1000, 265, 265, -1000, -1000,
+	70, -1000, 94, -1000, -1000, -1000, -1000, 93, 93, 93,
+	-1000, 30, -1000, -1000, -1000, 63, 13, -19, 1, 25,
+	48, 92, -1000, 293, 25, -1000, -28, 144, -1000, 25,
+	57, -1000, -1000, 25, -9, 265, -1000, -33, 293, 293,
+	-1000, -1000, -1000, -1000, -1000, -1000, -1000, 293, -1000, 69,
+	93, 7, -1000, 25, -1000, -1000, -1000, -1000, -11, -1000,
+	293, 293, 293, 293, 293, 293, 293, 293, 293, 293,
+	293, 293, 293, 248, 293, 93, -1000, -1000, 49, 7,
+	-1000, 25, -1000, -1000, 7, 194, -1000, 139, 139, -1000,
+	-1000, -1000, 250, 250, 164, 164, 164, 164, 196, 309,
+	-29, -1000, -1000, -7, -1000, -1000, -1000, 7, -1000, -1000,
+	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 93,
+	-25, 61, 58, 55, 56, -1000, 293, -1000, -1000, 25,
+	293, -1000, 293, 293, 161, -1000, -12, -1000, -30, -16,
+	46, 40, 293, 293, -1000, -1000, 293, -1000, 228, 228,
+	-17, -18, -21, 78, -1000, 228, 228, -1000, 228, 23,
+	22, -1000, 228, 228, -1000, -1000,
 }
 
 var yyPgo = [...]uint8{
-	0, 207, 135, 206, 199, 197, 183, 177, 0, 174,
-	173, 171, 165, 164, 163, 161, 2, 157, 8, 156,
-	142, 38, 47, 140, 1, 139, 101, 134, 13, 14,
+	0, 192, 127, 191, 190, 189, 174, 0, 171, 170,
+	168, 153, 151, 148, 143, 2, 141, 11, 134, 133,
+	72, 53, 131, 4, 128, 109, 106, 16, 17,
 }
 
 var yyR1 = [...]int8{
-	0, 1, 1, 7, 7, 2, 2, 2, 2, 5,
-	5, 6, 3, 3, 3, 3, 4, 4, 25, 25,
-	24, 27, 27, 26, 28, 28, 28, 17, 17, 8,
-	8, 8, 8, 8, 8, 8, 8, 9, 9, 10,
-	11, 11, 12, 13, 13, 14, 14, 15, 16, 16,
-	18, 22, 22, 22, 22, 22, 22, 22, 22, 22,
-	22, 22, 22, 22, 22, 21, 21, 21, 20, 20,
-	20, 20, 20, 23, 23, 19, 19, 19, 19, 19,
-	19, 19, 29,
+	0, 1, 1, 6, 6, 2, 2, 2, 5, 5,
+	3, 3, 3, 3, 3, 3, 4, 4, 24, 24,
+	23, 26, 26, 25, 27, 27, 27, 16, 16, 7,
+	7, 7, 7, 7, 7, 7, 7, 8, 8, 9,
+	10, 10, 11, 12, 12, 13, 13, 14, 15, 17,
+	21, 21, 21, 21, 21, 21, 21, 21, 21, 21,
+	21, 21, 21, 21, 20, 20, 20, 19, 19, 19,
+	19, 19, 22, 22, 18, 18, 18, 18, 18, 18,
+	18, 28,
 }
 
 var yyR2 = [...]int8{
-	0, 1, 0, 1, 2, 1, 1, 1, 1, 3,
-	5, 5, 7, 6, 8, 7, 5, 4, 1, 3,
-	2, 1, 2, 3, 1, 4, 3, 1, 2, 1,
+	0, 2, 0, 1, 2, 1, 1, 1, 3, 5,
+	7, 6, 6, 5, 8, 7, 5, 4, 1, 3,
+	2, 1, 2, 3, 1, 4, 3, 0, 2, 1,
 	1, 1, 1, 1, 1, 1, 1, 4, 6, 4,
-	5, 7, 5, 8, 8, 2, 3, 2, 3, 2,
-	1, 1, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 1, 2, 2, 1, 4,
-	3, 4, 3, 1, 3, 1, 1, 1, 1, 1,
-	1, 3, 1,
+	5, 7, 5, 8, 8, 2, 3, 2, 3, 1,
+	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 1, 2, 2, 1, 4, 3,
+	4, 3, 1, 3, 1, 1, 1, 1, 1, 1,
+	3, 1,
 }
 
 var yyChk = [...]int16{
-	-1000, -1, -7, -2, -3, -4, -5, -6, 9, 10,
-	-28, -29, 38, 8, -2, -29, -29, -29, 4, 39,
-	34, 36, 40, 33, 34, 39, -28, -25, 35, -24,
-	-29, -27, 37, -26, -29, -18, -22, -21, -20, 20,
-	32, -19, -29, 4, 5, 6, 17, 18, 34, 35,
-	-28, 35, 41, -28, 44, -28, 37, -26, -28, 40,
+	-1000, -1, -6, -2, -3, -4, -5, 9, 10, -27,
+	-28, 38, 8, 45, -2, -28, -28, -28, 4, 39,
+	34, 36, 40, 33, 39, -27, -24, 35, -23, -28,
+	-26, 37, -25, -28, -17, -21, -20, -19, 20, 32,
+	-18, -28, 4, 5, 6, 17, 18, 34, -27, 35,
+	41, -27, -15, 44, 36, -27, 37, -25, -27, 40,
 	19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-	29, 30, 31, 34, 38, 42, -21, -21, -18, -16,
-	36, -28, 44, -24, -16, -28, 40, -22, -22, -22,
-	-22, -22, -22, -22, -22, -22, -22, -22, -22, -22,
-	-23, 35, -18, -18, -29, 35, -17, 37, -8, -9,
-	-10, -11, -12, -13, -14, -15, -16, 11, -18, 12,
-	14, 15, 16, -16, -28, -16, 35, 41, 39, -8,
-	37, -29, 33, 40, 34, 34, 34, 40, -18, -16,
-	-18, -28, -18, -18, -18, -8, 40, 40, 40, 33,
-	40, 35, 35, -18, -18, -18, -8, -8, 40, 40,
-	40, 13, -8, -8, -8, 35, 35, -8, -8,
+	29, 30, 31, 34, 38, 42, -20, -20, -17, -27,
+	-15, 44, -23, -15, -27, -16, 40, -21, -21, -21,
+	-21, -21, -21, -21, -21, -21, -21, -21, -21, -21,
+	-22, 35, -17, -17, -28, 35, -15, -27, -15, -7,
+	37, -8, -9, -10, -11, -12, -13, -14, -15, 11,
+	-17, 12, 14, 15, 16, 35, 41, 39, -15, -28,
+	33, 40, 34, 34, 34, 40, -17, -17, -27, -17,
+	-17, -17, -7, 40, 40, 40, 33, 40, 35, 35,
+	-17, -17, -17, -7, -7, 40, 40, 40, 13, -7,
+	-7, -7, 35, 35, -7, -7,
 }
 
 var yyDef = [...]int8{
-	2, -2, 1, 3, 5, 6, 7, 8, 0, 0,
-	0, 24, 0, 82, 4, 0, 0, 0, 0, 0,
-	0, 0, 9, 0, 0, 0, 26, 0, 0, 18,
-	0, 0, 17, 21, 0, 0, 50, 51, 65, 0,
-	0, 68, 75, 76, 77, 78, 79, 80, 0, 0,
-	25, 0, 0, 0, 0, 20, 16, 22, 0, 10,
+	2, -2, 0, 3, 5, 6, 7, 0, 0, 0,
+	24, 0, 81, 1, 4, 0, 0, 0, 0, 0,
+	0, 0, 8, 0, 0, 26, 0, 0, 18, 0,
+	0, 17, 21, 0, 0, 49, 50, 64, 0, 0,
+	67, 74, 75, 76, 77, 78, 79, 0, 25, 0,
+	0, 0, 13, 0, 27, 20, 16, 22, 0, 9,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 66, 67, 0, 11,
-	0, 0, 0, 19, 13, 0, 23, 52, 53, 54,
-	55, 56, 57, 58, 59, 60, 61, 62, 63, 64,
-	0, 70, 73, 0, 72, 81, 0, 49, 27, 29,
-	30, 31, 32, 33, 34, 35, 36, 0, 0, 0,
-	0, 0, 0, 12, 0, 15, 69, 0, 71, 28,
-	48, 0, 0, 47, 0, 0, 0, 45, 0, 14,
-	74, 0, 0, 0, 0, 0, 0, 46, 37, 0,
-	39, 0, 0, 0, 0, 0, 40, 42, 0, 0,
-	38, 0, 0, 0, 41, 0, 0, 43, 44,
+	0, 0, 0, 0, 0, 0, 65, 66, 0, 0,
+	12, 0, 19, 11, 0, 0, 23, 51, 52, 53,
+	54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+	0, 69, 72, 0, 71, 80, 10, 0, 15, 28,
+	48, 29, 30, 31, 32, 33, 34, 35, 36, 0,
+	0, 0, 0, 0, 0, 68, 0, 70, 14, 0,
+	0, 47, 0, 0, 0, 45, 0, 73, 0, 0,
+	0, 0, 0, 0, 46, 37, 0, 39, 0, 0,
+	0, 0, 0, 40, 42, 0, 0, 38, 0, 0,
+	0, 41, 0, 0, 43, 44,
 }
 
 var yyTok1 = [...]int8{
@@ -667,64 +663,60 @@ yydefault:
 	switch yynt {
 
 	case 1:
-		yyDollar = yyS[yypt-1 : yypt+1]
+		yyDollar = yyS[yypt-2 : yypt+1]
 //line staticlang.y:78
 		{
-			yyVAL.program = &domain.Program{
+			ret := &domain.Program{
 				BaseNode:     domain.BaseNode{Location: getLocation(yyDollar[1].decls)},
 				Declarations: yyDollar[1].decls,
 			}
-			yylex.(*Parser).result = yyVAL.program
+			yylex.(*Parser).result = ret
+			yyVAL.program = ret
 		}
 	case 2:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line staticlang.y:85
+//line staticlang.y:86
 		{
-			yyVAL.program = &domain.Program{
+			ret := &domain.Program{
 				BaseNode:     domain.BaseNode{},
 				Declarations: []domain.Declaration{},
 			}
-			yylex.(*Parser).result = yyVAL.program
+			yylex.(*Parser).result = ret
+			yyVAL.program = ret
 		}
 	case 3:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:94
+//line staticlang.y:96
 		{
 			yyVAL.decls = []domain.Declaration{yyDollar[1].decl}
 		}
 	case 4:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:97
+//line staticlang.y:99
 		{
 			yyVAL.decls = append(yyDollar[1].decls, yyDollar[2].decl)
 		}
 	case 5:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:102
+//line staticlang.y:104
 		{
 			yyVAL.decl = yyDollar[1].decl
 		}
 	case 6:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:103
+//line staticlang.y:105
 		{
 			yyVAL.decl = yyDollar[1].decl
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:104
+//line staticlang.y:106
 		{
 			yyVAL.decl = yyDollar[1].decl
 		}
 	case 8:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:105
-		{
-			yyVAL.decl = yyDollar[1].decl
-		}
-	case 9:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:108
+//line staticlang.y:109
 		{
 			yyVAL.decl = &domain.VarDeclStmt{
 				BaseNode:    domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
@@ -733,9 +725,9 @@ yydefault:
 				Initializer: nil,
 			}
 		}
-	case 10:
+	case 9:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line staticlang.y:116
+//line staticlang.y:117
 		{
 			yyVAL.decl = &domain.VarDeclStmt{
 				BaseNode:    domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
@@ -744,21 +736,9 @@ yydefault:
 				Initializer: yyDollar[4].expr,
 			}
 		}
-	case 11:
-		yyDollar = yyS[yypt-5 : yypt+1]
-//line staticlang.y:126
-		{
-			yyVAL.decl = &domain.FunctionDecl{
-				BaseNode:   domain.BaseNode{Location: getLocationFromString(yyDollar[2].str)},
-				Name:       yyDollar[2].str,
-				Parameters: []domain.Parameter{},
-				ReturnType: yyDollar[1].typ,
-				Body:       yyDollar[5].stmt.(*domain.BlockStmt),
-			}
-		}
-	case 12:
+	case 10:
 		yyDollar = yyS[yypt-7 : yypt+1]
-//line staticlang.y:137
+//line staticlang.y:129
 		{
 			yyVAL.decl = &domain.FunctionDecl{
 				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -768,9 +748,9 @@ yydefault:
 				Body:       yyDollar[7].stmt.(*domain.BlockStmt),
 			}
 		}
-	case 13:
+	case 11:
 		yyDollar = yyS[yypt-6 : yypt+1]
-//line staticlang.y:146
+//line staticlang.y:138
 		{
 			yyVAL.decl = &domain.FunctionDecl{
 				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -780,9 +760,39 @@ yydefault:
 				Body:       yyDollar[6].stmt.(*domain.BlockStmt),
 			}
 		}
+	case 12:
+		yyDollar = yyS[yypt-6 : yypt+1]
+//line staticlang.y:147
+		{
+			// Default return type is int if no explicit type is provided
+			reg := yylex.(*Parser).typeRegistry
+			intType, _ := reg.GetType("int")
+			yyVAL.decl = &domain.FunctionDecl{
+				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
+				Name:       yyDollar[2].str,
+				Parameters: yyDollar[4].params,
+				ReturnType: intType,
+				Body:       yyDollar[6].stmt.(*domain.BlockStmt),
+			}
+		}
+	case 13:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line staticlang.y:159
+		{
+			// Default return type is int if no explicit type is provided
+			reg := yylex.(*Parser).typeRegistry
+			intType, _ := reg.GetType("int")
+			yyVAL.decl = &domain.FunctionDecl{
+				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
+				Name:       yyDollar[2].str,
+				Parameters: []domain.Parameter{},
+				ReturnType: intType,
+				Body:       yyDollar[5].stmt.(*domain.BlockStmt),
+			}
+		}
 	case 14:
 		yyDollar = yyS[yypt-8 : yypt+1]
-//line staticlang.y:155
+//line staticlang.y:171
 		{
 			yyVAL.decl = &domain.FunctionDecl{
 				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -794,7 +804,7 @@ yydefault:
 		}
 	case 15:
 		yyDollar = yyS[yypt-7 : yypt+1]
-//line staticlang.y:164
+//line staticlang.y:180
 		{
 			yyVAL.decl = &domain.FunctionDecl{
 				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -806,7 +816,7 @@ yydefault:
 		}
 	case 16:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line staticlang.y:175
+//line staticlang.y:191
 		{
 			yyVAL.decl = &domain.StructDecl{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -816,7 +826,7 @@ yydefault:
 		}
 	case 17:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:182
+//line staticlang.y:198
 		{
 			yyVAL.decl = &domain.StructDecl{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -826,19 +836,19 @@ yydefault:
 		}
 	case 18:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:191
+//line staticlang.y:207
 		{
 			yyVAL.params = []domain.Parameter{yyDollar[1].param}
 		}
 	case 19:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:194
+//line staticlang.y:210
 		{
 			yyVAL.params = append(yyDollar[1].params, yyDollar[3].param)
 		}
 	case 20:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:199
+//line staticlang.y:215
 		{
 			yyVAL.param = domain.Parameter{
 				Name: yyDollar[1].str,
@@ -847,19 +857,19 @@ yydefault:
 		}
 	case 21:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:207
+//line staticlang.y:223
 		{
 			yyVAL.fields = []domain.StructField{yyDollar[1].field}
 		}
 	case 22:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:210
+//line staticlang.y:226
 		{
 			yyVAL.fields = append(yyDollar[1].fields, yyDollar[2].field)
 		}
 	case 23:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:215
+//line staticlang.y:231
 		{
 			yyVAL.field = domain.StructField{
 				Name: yyDollar[1].str,
@@ -868,7 +878,7 @@ yydefault:
 		}
 	case 24:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:223
+//line staticlang.y:239
 		{
 			reg := yylex.(*Parser).typeRegistry
 			if t, exists := reg.GetType(yyDollar[1].str); exists {
@@ -879,7 +889,7 @@ yydefault:
 		}
 	case 25:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:231
+//line staticlang.y:247
 		{
 			size, _ := strconv.ParseInt(yyDollar[2].token.Value, 10, 32)
 			yyVAL.typ = &domain.ArrayType{
@@ -889,7 +899,7 @@ yydefault:
 		}
 	case 26:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:238
+//line staticlang.y:254
 		{
 			yyVAL.typ = &domain.ArrayType{
 				ElementType: yyDollar[3].typ,
@@ -897,68 +907,68 @@ yydefault:
 			}
 		}
 	case 27:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:246
+		yyDollar = yyS[yypt-0 : yypt+1]
+//line staticlang.y:262
 		{
-			yyVAL.stmts = []domain.Statement{yyDollar[1].stmt}
+			yyVAL.stmts = []domain.Statement{}
 		}
 	case 28:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:249
+//line staticlang.y:265
 		{
 			yyVAL.stmts = append(yyDollar[1].stmts, yyDollar[2].stmt)
 		}
 	case 29:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:254
+//line staticlang.y:270
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 30:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:255
+//line staticlang.y:271
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 31:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:256
+//line staticlang.y:272
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 32:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:257
+//line staticlang.y:273
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 33:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:258
+//line staticlang.y:274
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 34:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:259
+//line staticlang.y:275
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 35:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:260
+//line staticlang.y:276
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 36:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:261
+//line staticlang.y:277
 		{
 			yyVAL.stmt = yyDollar[1].stmt
 		}
 	case 37:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:264
+//line staticlang.y:280
 		{
 			yyVAL.stmt = &domain.VarDeclStmt{
 				BaseNode:    domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -969,7 +979,7 @@ yydefault:
 		}
 	case 38:
 		yyDollar = yyS[yypt-6 : yypt+1]
-//line staticlang.y:272
+//line staticlang.y:288
 		{
 			yyVAL.stmt = &domain.VarDeclStmt{
 				BaseNode:    domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -980,7 +990,7 @@ yydefault:
 		}
 	case 39:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:282
+//line staticlang.y:298
 		{
 			yyVAL.stmt = &domain.AssignStmt{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -990,7 +1000,7 @@ yydefault:
 		}
 	case 40:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line staticlang.y:291
+//line staticlang.y:307
 		{
 			yyVAL.stmt = &domain.IfStmt{
 				BaseNode:  domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1001,7 +1011,7 @@ yydefault:
 		}
 	case 41:
 		yyDollar = yyS[yypt-7 : yypt+1]
-//line staticlang.y:299
+//line staticlang.y:315
 		{
 			yyVAL.stmt = &domain.IfStmt{
 				BaseNode:  domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1012,7 +1022,7 @@ yydefault:
 		}
 	case 42:
 		yyDollar = yyS[yypt-5 : yypt+1]
-//line staticlang.y:309
+//line staticlang.y:325
 		{
 			yyVAL.stmt = &domain.WhileStmt{
 				BaseNode:  domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1022,7 +1032,7 @@ yydefault:
 		}
 	case 43:
 		yyDollar = yyS[yypt-8 : yypt+1]
-//line staticlang.y:318
+//line staticlang.y:334
 		{
 			yyVAL.stmt = &domain.ForStmt{
 				BaseNode:  domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1034,7 +1044,7 @@ yydefault:
 		}
 	case 44:
 		yyDollar = yyS[yypt-8 : yypt+1]
-//line staticlang.y:327
+//line staticlang.y:343
 		{
 			yyVAL.stmt = &domain.ForStmt{
 				BaseNode:  domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1046,7 +1056,7 @@ yydefault:
 		}
 	case 45:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:338
+//line staticlang.y:354
 		{
 			yyVAL.stmt = &domain.ReturnStmt{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1055,7 +1065,7 @@ yydefault:
 		}
 	case 46:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:344
+//line staticlang.y:360
 		{
 			yyVAL.stmt = &domain.ReturnStmt{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1064,7 +1074,7 @@ yydefault:
 		}
 	case 47:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:352
+//line staticlang.y:368
 		{
 			yyVAL.stmt = &domain.ExprStmt{
 				BaseNode:   domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1073,7 +1083,7 @@ yydefault:
 		}
 	case 48:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:360
+//line staticlang.y:376
 		{
 			yyVAL.stmt = &domain.BlockStmt{
 				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1081,29 +1091,20 @@ yydefault:
 			}
 		}
 	case 49:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:366
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line staticlang.y:384
 		{
-			yyVAL.stmt = &domain.BlockStmt{
-				BaseNode:   domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
-				Statements: []domain.Statement{},
-			}
+			yyVAL.expr = yyDollar[1].expr
 		}
 	case 50:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:374
+//line staticlang.y:387
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
 	case 51:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:377
-		{
-			yyVAL.expr = yyDollar[1].expr
-		}
-	case 52:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:378
+//line staticlang.y:388
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1112,9 +1113,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 53:
+	case 52:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:386
+//line staticlang.y:396
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1123,9 +1124,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 54:
+	case 53:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:394
+//line staticlang.y:404
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1134,9 +1135,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 55:
+	case 54:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:402
+//line staticlang.y:412
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1145,9 +1146,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 56:
+	case 55:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:410
+//line staticlang.y:420
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1156,9 +1157,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 57:
+	case 56:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:418
+//line staticlang.y:428
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1167,9 +1168,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 58:
+	case 57:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:426
+//line staticlang.y:436
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1178,9 +1179,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 59:
+	case 58:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:434
+//line staticlang.y:444
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1189,9 +1190,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 60:
+	case 59:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:442
+//line staticlang.y:452
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1200,9 +1201,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 61:
+	case 60:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:450
+//line staticlang.y:460
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1211,9 +1212,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 62:
+	case 61:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:458
+//line staticlang.y:468
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1222,9 +1223,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 63:
+	case 62:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:466
+//line staticlang.y:476
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1233,9 +1234,9 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 64:
+	case 63:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:474
+//line staticlang.y:484
 		{
 			yyVAL.expr = &domain.BinaryExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1244,15 +1245,15 @@ yydefault:
 				Right:    yyDollar[3].expr,
 			}
 		}
-	case 65:
+	case 64:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:484
+//line staticlang.y:494
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
-	case 66:
+	case 65:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:485
+//line staticlang.y:495
 		{
 			yyVAL.expr = &domain.UnaryExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1260,9 +1261,9 @@ yydefault:
 				Operand:  yyDollar[2].expr,
 			}
 		}
-	case 67:
+	case 66:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line staticlang.y:492
+//line staticlang.y:502
 		{
 			yyVAL.expr = &domain.UnaryExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
@@ -1270,15 +1271,15 @@ yydefault:
 				Operand:  yyDollar[2].expr,
 			}
 		}
-	case 68:
+	case 67:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:501
+//line staticlang.y:511
 		{
 			yyVAL.expr = yyDollar[1].expr
 		}
-	case 69:
+	case 68:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:502
+//line staticlang.y:512
 		{
 			yyVAL.expr = &domain.CallExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1286,9 +1287,9 @@ yydefault:
 				Args:     yyDollar[3].exprs,
 			}
 		}
-	case 70:
+	case 69:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:509
+//line staticlang.y:519
 		{
 			yyVAL.expr = &domain.CallExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1296,9 +1297,9 @@ yydefault:
 				Args:     []domain.Expression{},
 			}
 		}
-	case 71:
+	case 70:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line staticlang.y:516
+//line staticlang.y:526
 		{
 			yyVAL.expr = &domain.IndexExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1306,9 +1307,9 @@ yydefault:
 				Index:    yyDollar[3].expr,
 			}
 		}
-	case 72:
+	case 71:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:523
+//line staticlang.y:533
 		{
 			yyVAL.expr = &domain.MemberExpr{
 				BaseNode: domain.BaseNode{Location: yyDollar[1].expr.GetLocation()},
@@ -1316,30 +1317,30 @@ yydefault:
 				Member:   yyDollar[3].str,
 			}
 		}
-	case 73:
+	case 72:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:532
+//line staticlang.y:542
 		{
 			yyVAL.exprs = []domain.Expression{yyDollar[1].expr}
 		}
-	case 74:
+	case 73:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:535
+//line staticlang.y:545
 		{
 			yyVAL.exprs = append(yyDollar[1].exprs, yyDollar[3].expr)
 		}
-	case 75:
+	case 74:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:540
+//line staticlang.y:550
 		{
 			yyVAL.expr = &domain.IdentifierExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromString(yyDollar[1].str)},
 				Name:     yyDollar[1].str,
 			}
 		}
-	case 76:
+	case 75:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:546
+//line staticlang.y:556
 		{
 			val, _ := strconv.ParseInt(yyDollar[1].token.Value, 10, 64)
 			yyVAL.expr = &domain.LiteralExpr{
@@ -1347,9 +1348,9 @@ yydefault:
 				Value:    val,
 			}
 		}
-	case 77:
+	case 76:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:553
+//line staticlang.y:563
 		{
 			val, _ := strconv.ParseFloat(yyDollar[1].token.Value, 64)
 			yyVAL.expr = &domain.LiteralExpr{
@@ -1357,42 +1358,42 @@ yydefault:
 				Value:    val,
 			}
 		}
-	case 78:
+	case 77:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:560
+//line staticlang.y:570
 		{
 			yyVAL.expr = &domain.LiteralExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
 				Value:    yyDollar[1].token.Value,
 			}
 		}
-	case 79:
+	case 78:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:566
+//line staticlang.y:576
 		{
 			yyVAL.expr = &domain.LiteralExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
 				Value:    true,
 			}
 		}
-	case 80:
+	case 79:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:572
+//line staticlang.y:582
 		{
 			yyVAL.expr = &domain.LiteralExpr{
 				BaseNode: domain.BaseNode{Location: getLocationFromToken(yyDollar[1].token)},
 				Value:    false,
 			}
 		}
-	case 81:
+	case 80:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line staticlang.y:578
+//line staticlang.y:588
 		{
 			yyVAL.expr = yyDollar[2].expr
 		}
-	case 82:
+	case 81:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line staticlang.y:583
+//line staticlang.y:593
 		{
 			yyVAL.str = yyDollar[1].token.Value
 		}
