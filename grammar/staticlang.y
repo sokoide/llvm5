@@ -12,6 +12,7 @@ import (
 
 %}
 
+
 %union {
 	token      interfaces.Token
 	program    *domain.Program
@@ -32,8 +33,8 @@ import (
 	boolean    bool
 }
 
-// Token types
-%token <token> INT FLOAT STRING BOOL IDENTIFIER
+// Token types - following architecture: type names are identifiers, not special tokens
+%token <token> IDENTIFIER
 %token <token> FUNC STRUCT VAR IF ELSE WHILE FOR RETURN TRUE FALSE
 %token <token> PLUS MINUS STAR SLASH PERCENT
 %token <token> EQUAL NOT_EQUAL LESS LESS_EQUAL GREATER GREATER_EQUAL
@@ -244,7 +245,7 @@ type:
 			$$ = &domain.TypeError{Message: fmt.Sprintf("unknown type: %s", $1)}
 		}
 	}
-	| LEFT_BRACKET INT RIGHT_BRACKET type {
+	| LEFT_BRACKET IDENTIFIER RIGHT_BRACKET type {
 		size, _ := strconv.ParseInt($2.Value, 10, 32)
 		$$ = &domain.ArrayType{
 			ElementType: $4,
@@ -547,47 +548,35 @@ argument_list:
 	}
 
 primary_expr:
-	identifier {
-		$$ = &domain.IdentifierExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromString($1)},
-			Name:     $1,
-		}
-	}
-	| INT {
-		val, _ := strconv.ParseInt($1.Value, 10, 64)
-		$$ = &domain.LiteralExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Value:    val,
-		}
-	}
-	| FLOAT {
-		val, _ := strconv.ParseFloat($1.Value, 64)
-		$$ = &domain.LiteralExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Value:    val,
-		}
-	}
-	| STRING {
-		$$ = &domain.LiteralExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Value:    $1.Value,
-		}
-	}
-	| TRUE {
-		$$ = &domain.LiteralExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Value:    true,
-		}
-	}
-	| FALSE {
-		$$ = &domain.LiteralExpr{
-			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Value:    false,
-		}
-	}
-	| LEFT_PAREN expression RIGHT_PAREN {
-		$$ = $2
-	}
+ 	identifier {
+ 		$$ = &domain.IdentifierExpr{
+ 			BaseNode: domain.BaseNode{Location: getLocationFromString($1)},
+ 			Name:     $1,
+ 		}
+ 	}
+ 	| IDENTIFIER {
+ 		// Handle literals that come as identifiers
+ 		if $1.Value == "true" {
+ 			$$ = &domain.LiteralExpr{
+ 				BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+ 				Value:    true,
+ 			}
+ 		} else if $1.Value == "false" {
+ 			$$ = &domain.LiteralExpr{
+ 				BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+ 				Value:    false,
+ 			}
+ 		} else {
+ 			// Regular identifier
+ 			$$ = &domain.IdentifierExpr{
+ 				BaseNode: domain.BaseNode{Location: getLocationFromString($1.Value)},
+ 				Name:     $1.Value,
+ 			}
+ 		}
+ 	}
+ 	| LEFT_PAREN expression RIGHT_PAREN {
+ 		$$ = $2
+ 	}
 
 identifier:
 	IDENTIFIER { $$ = $1.Value }

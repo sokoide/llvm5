@@ -10,6 +10,8 @@ import (
 	"github.com/sokoide/llvm5/internal/domain"
 	"github.com/sokoide/llvm5/internal/infrastructure"
 	"github.com/sokoide/llvm5/internal/interfaces"
+	"github.com/sokoide/llvm5/lexer"
+	"github.com/sokoide/llvm5/semantic"
 )
 
 // CompilerConfig holds configuration for the compiler
@@ -115,8 +117,8 @@ func (factory *CompilerFactory) CreateLexer() interfaces.Lexer {
 	if factory.config.UseMockComponents {
 		return NewMockLexer()
 	}
-	// In a real implementation, return the actual lexer
-	return NewMockLexer() // Placeholder
+	// Return the real lexer implementation
+	return lexer.NewLexer()
 }
 
 // CreateParser creates a parser component
@@ -133,8 +135,8 @@ func (factory *CompilerFactory) CreateSemanticAnalyzer() interfaces.SemanticAnal
 	if factory.config.UseMockComponents {
 		return NewMockSemanticAnalyzer()
 	}
-	// In a real implementation, return the actual semantic analyzer
-	return NewMockSemanticAnalyzer() // Placeholder
+	// Return the real semantic analyzer implementation
+	return semantic.NewAnalyzer()
 }
 
 // CreateCodeGenerator creates a code generator component

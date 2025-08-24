@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sokoide/llvm5/grammar"
 	"github.com/sokoide/llvm5/internal/application"
 	"github.com/sokoide/llvm5/internal/domain"
 )
@@ -31,6 +32,7 @@ var (
 	showVersion       = flag.Bool("version", false, "Show version information")
 	showHelp          = flag.Bool("h", false, "Show this help message")
 	useMockComponents = flag.Bool("mock", false, "Use mock components for testing")
+	parserDebug       = flag.Int("parser-debug", 0, "Parser debug level (0-4)")
 )
 
 func main() {
@@ -45,6 +47,8 @@ func main() {
 		printUsage()
 		return
 	}
+
+	grammar.SetDebugLevel(*parserDebug)
 
 	// Parse input files
 	files := strings.Split(*inputFiles, ",")

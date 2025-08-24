@@ -25,7 +25,7 @@ LDFLAGS=-ldflags "-X main.Version=$(shell git describe --tags --always --dirty 2
 all: fmt vet test build
 
 # Build the compiler
-build: 
+build:
 	@echo "Building $(BINARY_NAME)..."
 	@mkdir -p $(BUILD_DIR)
 	$(GOBUILD) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
@@ -97,7 +97,7 @@ deps:
 generate-parser:
 	@echo "Generating parser with Goyacc..."
 	@if command -v goyacc >/dev/null 2>&1; then \
-		cd grammar && goyacc -o parser.go staticlang.y; \
+		cd grammar && goyacc -o parser.go -l staticlang.y; \
 	else \
 		echo "goyacc not found. Install it with:"; \
 		echo "  go install golang.org/x/tools/cmd/goyacc@latest"; \

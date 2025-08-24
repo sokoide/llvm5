@@ -17,6 +17,13 @@ type Parser struct {
 	errors       []string
 }
 
+// SetDebugLevel sets the parser debug level (0-4)
+func SetDebugLevel(level int) {
+	if level >= 0 && level <= 4 {
+		yyDebug = level
+	}
+}
+
 // NewRecursiveDescentParser returns a new Parser that implements
 // interfaces.Parser. The name matches the factory usage in the codebase.
 func NewRecursiveDescentParser() interfaces.Parser {
@@ -60,13 +67,17 @@ func (p *Parser) Lex(lval *yySymType) int {
 
 	switch tok.Type {
 	case interfaces.TokenInt:
-		return INT
+		// Map numeric literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenFloat:
-		return FLOAT
+		// Map float literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenString:
-		return STRING
+		// Map string literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenBool:
-		return BOOL
+		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenIdentifier:
 		return IDENTIFIER
 	case interfaces.TokenFunc:
@@ -86,9 +97,11 @@ func (p *Parser) Lex(lval *yySymType) int {
 	case interfaces.TokenReturn:
 		return RETURN
 	case interfaces.TokenTrue:
-		return TRUE
+		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenFalse:
-		return FALSE
+		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
+		return IDENTIFIER
 	case interfaces.TokenPlus:
 		return PLUS
 	case interfaces.TokenMinus:
