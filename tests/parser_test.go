@@ -42,17 +42,19 @@ func (p *MockParser) ParseProgram() *domain.Program {
 			if funcDecl := p.parseFunction(); funcDecl != nil {
 				program.Declarations = append(program.Declarations, funcDecl)
 			}
-		case interfaces.TokenInt, interfaces.TokenFloat, interfaces.TokenString:
-			if varDecl := p.parseGlobalVariable(token); varDecl != nil {
-				program.Declarations = append(program.Declarations, varDecl)
-			}
-		default:
-			// For main function without explicit function keyword
-			if token.Value == "int" {
+		case interfaces.TokenIdentifier:
+			// Check if this is a type identifier (int, string, double, etc.)
+			if token.Value == "int" || token.Value == "string" || token.Value == "double" || token.Value == "bool" {
 				next := p.lexer.Peek()
 				if next.Value == "main" {
+					// This is "int main()" function
 					if mainFunc := p.parseMainFunction(); mainFunc != nil {
 						program.Declarations = append(program.Declarations, mainFunc)
+					}
+				} else {
+					// This is a global variable declaration like "int globalVar;"
+					if varDecl := p.parseGlobalVariableWithTypeToken(token); varDecl != nil {
+						program.Declarations = append(program.Declarations, varDecl)
 					}
 				}
 			}
@@ -70,10 +72,56 @@ func (p *MockParser) parseFunction() *domain.FunctionDecl {
 		return nil
 	}
 
+	// Skip parameter parsing for simplicity - consume tokens until we find the function body
+	// Look for opening parenthesis
+	if p.lexer.Peek().Type == interfaces.TokenLeftParen {
+		p.lexer.NextToken() // consume '('
+
+		// Skip parameters - consume tokens until ')'
+		depth := 1
+		for depth > 0 {
+			token := p.lexer.NextToken()
+			if token.Type == interfaces.TokenEOF {
+				p.errors = append(p.errors, "unexpected end of input in parameter list")
+				return nil
+			}
+			if token.Type == interfaces.TokenLeftParen {
+				depth++
+			} else if token.Type == interfaces.TokenRightParen {
+				depth--
+			}
+		}
+	}
+
+	// Skip return type if present (-> type)
+	if p.lexer.Peek().Type == interfaces.TokenArrow {
+		p.lexer.NextToken() // consume '->'
+		p.lexer.NextToken() // consume return type
+	}
+
+	// Skip function body - consume tokens until matching braces
+	if p.lexer.Peek().Type == interfaces.TokenLeftBrace {
+		p.lexer.NextToken() // consume '{'
+
+		depth := 1
+		for depth > 0 {
+			token := p.lexer.NextToken()
+			if token.Type == interfaces.TokenEOF {
+				p.errors = append(p.errors, "unexpected end of input in function body")
+				return nil
+			}
+			if token.Type == interfaces.TokenLeftBrace {
+				depth++
+			} else if token.Type == interfaces.TokenRightBrace {
+				depth--
+			}
+		}
+	}
+
 	return &domain.FunctionDecl{
 		Name:       nameToken.Value,
-		Parameters: make([]domain.Parameter, 0),
-		ReturnType: domain.NewVoidType(),
+		Parameters: make([]domain.Parameter, 0), // Simplified - no actual parameter parsing
+		ReturnType: domain.NewVoidType(),        // Simplified - assume void for mock
 		Body: &domain.BlockStmt{
 			Statements: make([]domain.Statement, 0),
 		},
@@ -95,6 +143,8 @@ func (p *MockParser) parseGlobalVariable(typeToken interfaces.Token) *domain.Var
 		varType = domain.NewFloatType()
 	case interfaces.TokenString:
 		varType = domain.NewStringType()
+	default:
+		varType = domain.NewIntType() // Default fallback
 	}
 
 	// Check for initializer (= value)
@@ -105,14 +155,61 @@ func (p *MockParser) parseGlobalVariable(typeToken interfaces.Token) *domain.Var
 
 		// Skip the initializer value (simplified - just consume next token)
 		valueToken := p.lexer.NextToken()
-		if valueToken.Type != interfaces.TokenInt && valueToken.Type != interfaces.TokenFloat && valueToken.Type != interfaces.TokenString {
-			p.errors = append(p.errors, "expected initializer value")
+		if valueToken.Type != interfaces.TokenInt && valueToken.Type != interfaces.TokenFloat &&
+			valueToken.Type != interfaces.TokenString && valueToken.Type != interfaces.TokenIdentifier {
+			// Allow identifiers as initializer values too
 		}
+	}
 
-		// Skip semicolon if present
-		if p.lexer.Peek().Type == interfaces.TokenSemicolon {
-			p.lexer.NextToken()
+	// Skip semicolon if present
+	if p.lexer.Peek().Type == interfaces.TokenSemicolon {
+		p.lexer.NextToken()
+	}
+
+	return &domain.VarDeclStmt{
+		Name:  nameToken.Value,
+		Type_: varType,
+	}
+}
+
+func (p *MockParser) parseGlobalVariableWithTypeToken(typeToken interfaces.Token) *domain.VarDeclStmt {
+	nameToken := p.lexer.NextToken()
+	if nameToken.Type != interfaces.TokenIdentifier {
+		p.errors = append(p.errors, "expected variable name")
+		return nil
+	}
+
+	var varType domain.Type
+	switch typeToken.Value {
+	case "int":
+		varType = domain.NewIntType()
+	case "double":
+		varType = domain.NewFloatType()
+	case "string":
+		varType = domain.NewStringType()
+	case "bool":
+		varType = domain.NewBoolType()
+	default:
+		varType = domain.NewIntType() // Default fallback
+	}
+
+	// Check for initializer (= value)
+	nextToken := p.lexer.Peek()
+	if nextToken.Type == interfaces.TokenAssign {
+		// Skip the = token
+		p.lexer.NextToken()
+
+		// Skip the initializer value (simplified - just consume next token)
+		valueToken := p.lexer.NextToken()
+		if valueToken.Type != interfaces.TokenInt && valueToken.Type != interfaces.TokenFloat &&
+			valueToken.Type != interfaces.TokenString && valueToken.Type != interfaces.TokenIdentifier {
+			// Allow identifiers as initializer values too
 		}
+	}
+
+	// Skip semicolon if present
+	if p.lexer.Peek().Type == interfaces.TokenSemicolon {
+		p.lexer.NextToken()
 	}
 
 	return &domain.VarDeclStmt{

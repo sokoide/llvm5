@@ -39,11 +39,9 @@ var keywords = map[string]interfaces.TokenType{
 	"return":   interfaces.TokenReturn,
 	"true":     interfaces.TokenTrue,
 	"false":    interfaces.TokenFalse,
-	"int":      interfaces.TokenInt,
-	"double":   interfaces.TokenFloat,
-	"string":   interfaces.TokenString,
-	"bool":     interfaces.TokenBool,
-	"print":    interfaces.TokenIdentifier, // Built-in function
+	// Type names like "int", "double", "string", "bool" should be identifiers
+	// resolved by the type system, not special tokens
+	"print": interfaces.TokenIdentifier, // Built-in function
 }
 
 // NewLexer creates a new StaticLang lexer
