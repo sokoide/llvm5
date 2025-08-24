@@ -1,0 +1,89 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+
+# Build output
+build/
+dist/
+bin/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Example output files
+examples/*.ll
+examples/*.o
+examples/*.s
+examples/hello_output.ll
+
+# Test coverage
+coverage/
+*.cover
+
+# Debug binaries
+staticlang-debug
+*-debug
+
+# Cache directories
+.gocache/
+.cache/
+
+# Project specific
+.claude/
+.serena/
+
+# Go module proxy cache
+/pkg/
+
+# Go build cache
+/cache/
+
+# Optional: Don't commit secrets
+.env
+.env.local
+config.local.*
+
+# Optional: Don't commit generated parser files
+# Uncomment if you want to generate parser from scratch
+# grammar/parser.go
+# grammar/y.output
+
+# Optional: Don't commit build artifacts
+# Uncomment if you want to keep them
+# build/
+# dist/
