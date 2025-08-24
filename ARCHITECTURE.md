@@ -103,8 +103,9 @@ Input Source → Lexer → Parser → Semantic Analyzer → Code Generator → L
 
 #### Lexer
 - `NextToken()` - Returns the next token from input
-- `SetInput(filename, reader)` - Sets input source
+- `SetInput(filename, reader)` - Sets input source  
 - Handles source position tracking
+- **Token Classification**: Type keywords (`int`, `string`, etc.) are treated as identifiers and resolved by the type system, not as special tokens
 
 #### Parser
 - `Parse(lexer)` - Constructs AST from token stream
@@ -281,11 +282,25 @@ The current architecture can be extended to support plugins through:
 - End-to-end compilation pipeline tests
 - Multi-file compilation tests
 - Error handling and recovery tests
+- Mock vs. real component validation
+
+### Parser Testing
+- Complex program parsing with multiple declarations
+- Token type validation and identifier resolution
+- Error recovery and reporting
+- Grammar compliance verification
 
 ### Performance Testing
 - Memory usage profiling
 - Compilation time benchmarks
 - Generated code quality assessment
+
+### Test Architecture
+The testing strategy maintains clean architecture principles:
+- **Mock Components**: Enable isolated testing of each layer
+- **Interface Contracts**: Tests validate interface compliance
+- **Component Integration**: End-to-end tests verify proper component interaction
+- **Error Handling**: Comprehensive error scenario coverage
 
 ## Build Integration
 
