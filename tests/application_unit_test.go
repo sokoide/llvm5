@@ -75,12 +75,12 @@ func TestCompilerFactoryMockComponents(t *testing.T) {
 	mockInput := "func main() { return 0; }"
 	inputReader := strings.NewReader(mockInput)
 	outputWriter := &strings.Builder{}
-	
+
 	err := pipeline.Compile("test.sl", inputReader, outputWriter)
 	if err != nil {
 		t.Errorf("Mock compilation failed: %v", err)
 	}
-	
+
 	// Mock should write some result to output
 	result := outputWriter.String()
 	if result == "" {
@@ -127,9 +127,9 @@ func TestDefaultCompilerConfig(t *testing.T) {
 
 func TestCompilerPipelineConfiguration(t *testing.T) {
 	config := application.CompilerConfig{
-		UseMockComponents:     false,
-		MemoryManagerType:     application.PooledMemoryManager,
-		ErrorReporterType:     application.ConsoleErrorReporter,
+		UseMockComponents: false,
+		MemoryManagerType: application.PooledMemoryManager,
+		ErrorReporterType: application.ConsoleErrorReporter,
 		CompilationOptions: domain.CompilationOptions{
 			OptimizationLevel: 2,
 			DebugInfo:         true,
@@ -149,12 +149,12 @@ func TestCompilerPipelineConfiguration(t *testing.T) {
 	if pipeline == nil {
 		t.Error("Configured pipeline should not be nil")
 	}
-	
+
 	// Test basic functionality with configured pipeline
 	mockInput := "func main() { return 0; }"
 	inputReader := strings.NewReader(mockInput)
 	outputWriter := &strings.Builder{}
-	
+
 	// This should not crash with the configuration
 	err := pipeline.Compile("test.sl", inputReader, outputWriter)
 	// We don't expect this to succeed with real components in unit tests,
@@ -177,36 +177,36 @@ func TestMultiFileCompilerPipeline(t *testing.T) {
 	if pipeline == nil {
 		t.Error("MultiFile pipeline creation failed")
 	}
-	
+
 	// Test basic interface availability (pipeline embeds DefaultCompilerPipeline)
 	mockInput := "func main() { return 0; }"
 	inputReader := strings.NewReader(mockInput)
 	outputWriter := &strings.Builder{}
-	
+
 	// Should not crash (even if compilation fails, structure should be sound)
 	_ = pipeline.Compile("test.sl", inputReader, outputWriter)
 }
 
 func TestMemoryManagerTypes(t *testing.T) {
 	testCases := []struct {
-		name         string
-		managerType  application.MemoryManagerType
-		description  string
+		name        string
+		managerType application.MemoryManagerType
+		description string
 	}{
 		{
-			name:         "PooledMemoryManager",
-			managerType:  application.PooledMemoryManager,
-			description:  "Should create pooled memory manager",
+			name:        "PooledMemoryManager",
+			managerType: application.PooledMemoryManager,
+			description: "Should create pooled memory manager",
 		},
 		{
-			name:         "CompactMemoryManager", 
-			managerType:  application.CompactMemoryManager,
-			description:  "Should create compact memory manager",
+			name:        "CompactMemoryManager",
+			managerType: application.CompactMemoryManager,
+			description: "Should create compact memory manager",
 		},
 		{
-			name:         "TrackingMemoryManager",
-			managerType:  application.TrackingMemoryManager,
-			description:  "Should create tracking memory manager",
+			name:        "TrackingMemoryManager",
+			managerType: application.TrackingMemoryManager,
+			description: "Should create tracking memory manager",
 		},
 	}
 
@@ -270,12 +270,12 @@ func TestCompilerPipelineBasicOperation(t *testing.T) {
 	mockInput := "func main() { return 0; }"
 	inputReader := strings.NewReader(mockInput)
 	outputWriter := &strings.Builder{}
-	
+
 	err := pipeline.Compile("test.sl", inputReader, outputWriter)
 	if err != nil {
 		t.Errorf("Mock compilation failed: %v", err)
 	}
-	
+
 	// Mock should produce some output
 	result := outputWriter.String()
 	if result == "" {
@@ -296,25 +296,25 @@ func TestPipelineComponentSetting(t *testing.T) {
 	analyzer := factory.CreateSemanticAnalyzer()
 	generator := factory.CreateCodeGenerator()
 	reporter := factory.CreateErrorReporter()
-	
+
 	// These should not panic
 	pipeline.SetLexer(lexer)
 	pipeline.SetParser(parser)
 	pipeline.SetSemanticAnalyzer(analyzer)
 	pipeline.SetCodeGenerator(generator)
 	pipeline.SetErrorReporter(reporter)
-	
+
 	options := domain.CompilationOptions{
 		OptimizationLevel: 1,
 		DebugInfo:         false,
 	}
 	pipeline.SetOptions(options)
-	
+
 	// Pipeline should still work after component setting
 	mockInput := "func main() { return 0; }"
 	inputReader := strings.NewReader(mockInput)
 	outputWriter := &strings.Builder{}
-	
+
 	err := pipeline.Compile("test.sl", inputReader, outputWriter)
 	if err != nil {
 		t.Errorf("Compilation after component setting failed: %v", err)

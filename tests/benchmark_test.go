@@ -38,7 +38,7 @@ func main() -> int {
 }`,
 		},
 		{
-			name: "Large",
+			name:  "Large",
 			input: generateLargeProgram(100), // 100 functions
 		},
 	}
@@ -46,7 +46,7 @@ func main() -> int {
 	for _, tc := range testCases {
 		b.Run(tc.name, func(b *testing.B) {
 			lexer := factory.CreateLexer()
-			
+
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				// Reset lexer for each iteration
@@ -96,7 +96,7 @@ func main() -> int {
 }`,
 		},
 		{
-			name: "Large",
+			name:  "Large",
 			input: generateLargeProgram(50), // 50 functions
 		},
 	}
@@ -104,7 +104,7 @@ func main() -> int {
 	for _, tc := range testCases {
 		b.Run(tc.name, func(b *testing.B) {
 			parser := factory.CreateParser()
-			
+
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				lexer := factory.CreateLexer()
@@ -186,12 +186,12 @@ func main() -> int {
 	for _, tc := range testCases {
 		b.Run(tc.name, func(b *testing.B) {
 			pipeline := factory.CreateCompilerPipeline()
-			
+
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				inputReader := strings.NewReader(tc.input)
 				outputWriter := &strings.Builder{}
-				
+
 				err := pipeline.Compile("bench.sl", inputReader, outputWriter)
 				if err != nil {
 					b.Fatalf("Compilation failed: %v", err)
@@ -217,9 +217,9 @@ func BenchmarkMemoryManager(b *testing.B) {
 			config := application.DefaultCompilerConfig()
 			config.MemoryManagerType = mt.managerType
 			factory := application.NewCompilerFactory(config)
-			
+
 			memManager := factory.CreateMemoryManager()
-			
+
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				// Simulate memory operations
@@ -262,7 +262,7 @@ func BenchmarkTokenClassification(b *testing.B) {
 // for benchmarking purposes
 func generateLargeProgram(numFunctions int) string {
 	var builder strings.Builder
-	
+
 	// Generate multiple similar functions
 	for i := 0; i < numFunctions; i++ {
 		builder.WriteString("func function")
@@ -277,7 +277,7 @@ func generateLargeProgram(numFunctions int) string {
 		builder.WriteString("    }\n")
 		builder.WriteString("}\n\n")
 	}
-	
+
 	// Add main function that calls some of the generated functions
 	builder.WriteString("func main() -> int {\n")
 	builder.WriteString("    var total: int = 0;\n")
@@ -288,12 +288,12 @@ func generateLargeProgram(numFunctions int) string {
 		builder.WriteString("(")
 		builder.WriteString(strconv.Itoa(i))
 		builder.WriteString(", ")
-		builder.WriteString(strconv.Itoa(i+1))
+		builder.WriteString(strconv.Itoa(i + 1))
 		builder.WriteString(");\n")
 	}
 	builder.WriteString("    return total;\n")
 	builder.WriteString("}\n")
-	
+
 	return builder.String()
 }
 

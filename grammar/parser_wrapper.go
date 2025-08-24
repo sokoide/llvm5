@@ -147,8 +147,6 @@ func (p *Parser) Lex(lval *yySymType) int {
 		return COLON
 	case interfaces.TokenArrow:
 		return ARROW
-	case interfaces.TokenEOF:
-		return EOF
 	default:
 		return 0
 	}
