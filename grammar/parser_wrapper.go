@@ -37,9 +37,6 @@ func (p *Parser) Parse(lex interfaces.Lexer) (*domain.Program, error) {
 	p.typeRegistry = domain.NewDefaultTypeRegistry()
 	p.errors = nil
 
-	// The generated parser expects an object that implements Lex/Error
-	// (the yyLexer interface). Our Parser implements those methods below,
-	// so we can pass it directly to yyParse.
 	rc := yyParse(p)
 	if rc != 0 {
 		return nil, fmt.Errorf("parse error: %v", p.errors)
@@ -53,8 +50,6 @@ func (p *Parser) Parse(lex interfaces.Lexer) (*domain.Program, error) {
 
 // SetErrorReporter satisfies the interfaces.Parser API (no-op for now).
 func (p *Parser) SetErrorReporter(reporter domain.ErrorReporter) {
-	// Not used by the generated parser directly; parser rules may write
-	// errors into p.errors via Error.
 }
 
 // Lex implements the lexer interface expected by the generated parser.
@@ -63,20 +58,20 @@ func (p *Parser) SetErrorReporter(reporter domain.ErrorReporter) {
 // into the semantic value union so parser actions can access it.
 func (p *Parser) Lex(lval *yySymType) int {
 	tok := p.lexer.NextToken()
+	if tok.Type == interfaces.TokenEOF {
+		// follow the yacc/goyacc contract, return 0
+		return 0
+	}
 	lval.token = tok
 
 	switch tok.Type {
 	case interfaces.TokenInt:
-		// Map numeric literals to IDENTIFIER since they're handled as identifiers in grammar
-		return IDENTIFIER
+		return INT
 	case interfaces.TokenFloat:
-		// Map float literals to IDENTIFIER since they're handled as identifiers in grammar
-		return IDENTIFIER
+		return FLOAT
 	case interfaces.TokenString:
-		// Map string literals to IDENTIFIER since they're handled as identifiers in grammar
 		return IDENTIFIER
 	case interfaces.TokenBool:
-		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
 		return IDENTIFIER
 	case interfaces.TokenIdentifier:
 		return IDENTIFIER
@@ -97,10 +92,8 @@ func (p *Parser) Lex(lval *yySymType) int {
 	case interfaces.TokenReturn:
 		return RETURN
 	case interfaces.TokenTrue:
-		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
 		return IDENTIFIER
 	case interfaces.TokenFalse:
-		// Map boolean literals to IDENTIFIER since they're handled as identifiers in grammar
 		return IDENTIFIER
 	case interfaces.TokenPlus:
 		return PLUS
@@ -157,7 +150,6 @@ func (p *Parser) Lex(lval *yySymType) int {
 	case interfaces.TokenEOF:
 		return EOF
 	default:
-		// Unknown token -> signal error token
 		return 0
 	}
 }

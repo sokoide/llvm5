@@ -18,6 +18,7 @@
 go.work
 
 # Build output
+grammar/y.output
 build/
 dist/
 bin/

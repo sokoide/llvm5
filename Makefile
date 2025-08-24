@@ -97,7 +97,7 @@ deps:
 generate-parser:
 	@echo "Generating parser with Goyacc..."
 	@if command -v goyacc >/dev/null 2>&1; then \
-		cd grammar && goyacc -o parser.go -l staticlang.y; \
+		cd grammar && goyacc -v y.output -o parser.go -l staticlang.y; \
 	else \
 		echo "goyacc not found. Install it with:"; \
 		echo "  go install golang.org/x/tools/cmd/goyacc@latest"; \

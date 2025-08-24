@@ -12,7 +12,6 @@ import (
 
 %}
 
-
 %union {
 	token      interfaces.Token
 	program    *domain.Program
@@ -33,8 +32,8 @@ import (
 	boolean    bool
 }
 
-// Token types - following architecture: type names are identifiers, not special tokens
-%token <token> IDENTIFIER
+// Token types
+%token <token> INT FLOAT STRING BOOL IDENTIFIER
 %token <token> FUNC STRUCT VAR IF ELSE WHILE FOR RETURN TRUE FALSE
 %token <token> PLUS MINUS STAR SLASH PERCENT
 %token <token> EQUAL NOT_EQUAL LESS LESS_EQUAL GREATER GREATER_EQUAL
@@ -43,7 +42,6 @@ import (
 %token <token> LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE LEFT_BRACKET RIGHT_BRACKET
 %token <token> SEMICOLON COMMA DOT COLON
 %token <token> ARROW
-%token <token> EOF
 
 // Non-terminal types
 %type <program> program
@@ -58,7 +56,7 @@ import (
 %type <field> struct_field
 %type <fields> struct_field_list
 %type <typ> type
-%type <str> identifier
+%type <token> identifier
 
 // Token precedence for dangling else resolution
 %nonassoc LOWER_THAN_ELSE
@@ -76,7 +74,7 @@ import (
 %%
 
 program:
-	declaration_list EOF {
+	declaration_list {
 		ret := &domain.Program{
 			BaseNode:     domain.BaseNode{Location: getLocation($1)},
 			Declarations: $1,
@@ -110,7 +108,7 @@ global_var_decl:
  	type identifier SEMICOLON {
  		$$ = &domain.VarDeclStmt{
  			BaseNode:    domain.BaseNode{Location: getLocationFromString($2)},
- 			Name:        $2,
+ 			Name:        $2.Value,
  			Type_:       $1,
  			Initializer: nil,
  		}
@@ -118,7 +116,7 @@ global_var_decl:
  	| type identifier ASSIGN expression SEMICOLON {
  		$$ = &domain.VarDeclStmt{
  			BaseNode:    domain.BaseNode{Location: getLocationFromString($2)},
- 			Name:        $2,
+ 			Name:        $2.Value,
  			Type_:       $1,
  			Initializer: $4,
  		}
@@ -130,7 +128,7 @@ function_decl:
   FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN type block_stmt {
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: $4,
   			ReturnType: $6,
   			Body:       $7.(*domain.BlockStmt),
@@ -139,7 +137,7 @@ function_decl:
   	| FUNC identifier LEFT_PAREN RIGHT_PAREN type block_stmt {
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: []domain.Parameter{},
   			ReturnType: $5,
   			Body:       $6.(*domain.BlockStmt),
@@ -151,7 +149,7 @@ function_decl:
   		intType, _ := reg.GetType("int")
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: $4,
   			ReturnType: intType,
   			Body:       $6.(*domain.BlockStmt),
@@ -163,7 +161,7 @@ function_decl:
   		intType, _ := reg.GetType("int")
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: []domain.Parameter{},
   			ReturnType: intType,
   			Body:       $5.(*domain.BlockStmt),
@@ -172,7 +170,7 @@ function_decl:
   	| FUNC identifier LEFT_PAREN parameter_list RIGHT_PAREN ARROW type block_stmt {
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: $4,
   			ReturnType: $7,
   			Body:       $8.(*domain.BlockStmt),
@@ -181,7 +179,7 @@ function_decl:
   	| FUNC identifier LEFT_PAREN RIGHT_PAREN ARROW type block_stmt {
   		$$ = &domain.FunctionDecl{
   			BaseNode:   domain.BaseNode{Location: getLocationFromToken($1)},
-  			Name:       $2,
+  			Name:       $2.Value,
   			Parameters: []domain.Parameter{},
   			ReturnType: $6,
   			Body:       $7.(*domain.BlockStmt),
@@ -192,14 +190,14 @@ struct_decl:
 	STRUCT identifier LEFT_BRACE struct_field_list RIGHT_BRACE {
 		$$ = &domain.StructDecl{
 			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:     $2,
+			Name:     $2.Value,
 			Fields:   $4,
 		}
 	}
 	| STRUCT identifier LEFT_BRACE RIGHT_BRACE {
 		$$ = &domain.StructDecl{
 			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:     $2,
+			Name:     $2.Value,
 			Fields:   []domain.StructField{},
 		}
 	}
@@ -215,7 +213,7 @@ parameter_list:
 parameter:
 	identifier type {
 		$$ = domain.Parameter{
-			Name: $1,
+			Name: $1.Value,
 			Type: $2,
 		}
 	}
@@ -231,7 +229,7 @@ struct_field_list:
 struct_field:
 	identifier type SEMICOLON {
 		$$ = domain.StructField{
-			Name: $1,
+			Name: $1.Value,
 			Type: $2,
 		}
 	}
@@ -239,13 +237,13 @@ struct_field:
 type:
 	identifier {
 		reg := yylex.(*Parser).typeRegistry
-		if t, exists := reg.GetType($1); exists {
+		if t, exists := reg.GetType($1.Value); exists {
 			$$ = t
 		} else {
 			$$ = &domain.TypeError{Message: fmt.Sprintf("unknown type: %s", $1)}
 		}
 	}
-	| LEFT_BRACKET IDENTIFIER RIGHT_BRACKET type {
+	| LEFT_BRACKET INT RIGHT_BRACKET type {
 		size, _ := strconv.ParseInt($2.Value, 10, 32)
 		$$ = &domain.ArrayType{
 			ElementType: $4,
@@ -281,7 +279,7 @@ var_decl_stmt:
 	VAR identifier type SEMICOLON {
 		$$ = &domain.VarDeclStmt{
 			BaseNode:    domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:        $2,
+			Name:        $2.Value,
 			Type_:       $3,
 			Initializer: nil,
 		}
@@ -289,7 +287,7 @@ var_decl_stmt:
 	| VAR identifier type ASSIGN expression SEMICOLON {
 		$$ = &domain.VarDeclStmt{
 			BaseNode:    domain.BaseNode{Location: getLocationFromToken($1)},
-			Name:        $2,
+			Name:        $2.Value,
 			Type_:       $3,
 			Initializer: $5,
 		}
@@ -535,7 +533,7 @@ call_expr:
 		$$ = &domain.MemberExpr{
 			BaseNode: domain.BaseNode{Location: $1.GetLocation()},
 			Object:   $1,
-			Member:   $3,
+			Member:   $3.Value,
 		}
 	}
 
@@ -548,38 +546,50 @@ argument_list:
 	}
 
 primary_expr:
- 	identifier {
- 		$$ = &domain.IdentifierExpr{
- 			BaseNode: domain.BaseNode{Location: getLocationFromString($1)},
- 			Name:     $1,
- 		}
- 	}
- 	| IDENTIFIER {
- 		// Handle literals that come as identifiers
- 		if $1.Value == "true" {
- 			$$ = &domain.LiteralExpr{
- 				BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
- 				Value:    true,
- 			}
- 		} else if $1.Value == "false" {
- 			$$ = &domain.LiteralExpr{
- 				BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
- 				Value:    false,
- 			}
- 		} else {
- 			// Regular identifier
- 			$$ = &domain.IdentifierExpr{
- 				BaseNode: domain.BaseNode{Location: getLocationFromString($1.Value)},
- 				Name:     $1.Value,
- 			}
- 		}
- 	}
- 	| LEFT_PAREN expression RIGHT_PAREN {
- 		$$ = $2
- 	}
+	identifier {
+		$$ = &domain.IdentifierExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromString($1)},
+			Name:     $1.Value,
+		}
+	}
+	| INT {
+		val, _ := strconv.ParseInt($1.Value, 10, 64)
+		$$ = &domain.LiteralExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+			Value:    val,
+		}
+	}
+	| FLOAT {
+		val, _ := strconv.ParseFloat($1.Value, 64)
+		$$ = &domain.LiteralExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+			Value:    val,
+		}
+	}
+	| STRING {
+		$$ = &domain.LiteralExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+			Value:    $1.Value,
+		}
+	}
+	| TRUE {
+		$$ = &domain.LiteralExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+			Value:    true,
+		}
+	}
+	| FALSE {
+		$$ = &domain.LiteralExpr{
+			BaseNode: domain.BaseNode{Location: getLocationFromToken($1)},
+			Value:    false,
+		}
+	}
+	| LEFT_PAREN expression RIGHT_PAREN {
+		$$ = $2
+	}
 
 identifier:
-	IDENTIFIER { $$ = $1.Value }
+	IDENTIFIER { $$ = $1 }
 
 %%
 
