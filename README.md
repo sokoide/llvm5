@@ -70,6 +70,29 @@ make install
 cat hello.ll
 ```
 
+### Running Generated LLVM IR
+
+To run the generated LLVM IR files, you need to link them with the runtime library that provides the builtin functions:
+
+```bash
+# Build the runtime library
+make build-runtime
+
+# Compile LLVM IR with the runtime library
+clang hello.ll build/builtin.o -o hello
+
+# Run the executable
+./hello
+```
+
+Alternatively, you can use the convenient Makefile target:
+```bash
+# Build and run example (does all steps above automatically)
+make run-example
+```
+
+The runtime library (`build/builtin.o`) contains implementations for builtin functions like `print`, `malloc`, etc. that are referenced in the generated LLVM IR.
+
 ## Architecture Overview
 
 The StaticLang compiler follows a layered architecture pattern:

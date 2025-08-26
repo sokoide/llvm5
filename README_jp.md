@@ -70,6 +70,29 @@ make install
 cat hello.ll
 ```
 
+### 生成されたLLVM IRの実行
+
+生成されたLLVM IRファイルを実行するには、組み込み関数を提供するランタイムライブラリとリンクする必要があります：
+
+```bash
+# ランタイムライブラリをビルド
+make build-runtime
+
+# ランタイムライブラリと共にLLVM IRをコンパイル
+clang hello.ll build/builtin.o -o hello
+
+# 実行ファイルを実行
+./hello
+```
+
+または、便利なMakefileターゲットを使用できます：
+```bash
+# サンプルをビルドして実行（上記のすべての手順を自動的に実行）
+make run-example
+```
+
+ランタイムライブラリ（`build/builtin.o`）には、生成されたLLVM IRで参照される`print`、`malloc`などの組み込み関数の実装が含まれています。
+
 ## アーキテクチャ概要
 
 StaticLang コンパイラは階層化アーキテクチャパターンに従います：
