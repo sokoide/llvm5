@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"testing"
+	"strings"
 
 	"github.com/sokoide/llvm5/internal/domain"
 	"github.com/sokoide/llvm5/internal/infrastructure"
@@ -1397,4 +1398,153 @@ func TestAnalyzer_UnaryExpressionTypeValidation(t *testing.T) {
 	if err == nil && !errorReporter.HasErrors() {
 		t.Error("Logical NOT of integer should produce an error")
 	}
+}
+
+func TestAnalyzer_HandlePrintFunction_WithArguments(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	analyzer.SetSymbolTable(symbolTable)
+
+	// Initialize builtin functions (which includes print)
+	err := analyzer.initializeBuiltinFunctions()
+	if err != nil {
+		t.Fatalf("Failed to initialize builtin functions: %v", err)
+	}
+
+	// Create a print call expression with arguments - this should trigger handlePrintFunction
+	printCallExpr := &domain.CallExpr{
+		Function: &domain.IdentifierExpr{Name: "print"},
+		Args: []domain.Expression{
+			&domain.LiteralExpr{Value: int64(42)},
+			&domain.LiteralExpr{Value: "hello"},
+		},
+	}
+
+	// Visit the call expression, which should invoke handlePrintFunction
+	err = analyzer.VisitCallExpr(printCallExpr)
+	if err != nil {
+		t.Errorf("Print call with arguments should not fail: %v", err)
+	}
+
+	// Verify the correct type (void) was assigned
+	if printCallExpr.GetType().String() != "void" {
+		t.Errorf("Print function should return void type, got %s", printCallExpr.GetType().String())
+	}
+
+	// Verify the function was found and processed
+	t.Log("Print function with arguments successfully processed - handlePrintFunction exercise verified")
+}
+
+func TestAnalyzer_HandlePrintFunction_NoArguments(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Initialize builtin functions (which includes print)
+	err := analyzer.initializeBuiltinFunctions()
+	if err != nil {
+		t.Fatalf("Failed to initialize builtin functions: %v", err)
+	}
+
+	// Create a print call expression with no arguments - this triggers the error case in handlePrintFunction
+	emptyPrintCallExpr := &domain.CallExpr{
+		Function: &domain.IdentifierExpr{Name: "print"},
+		Args:     []domain.Expression{}, // Empty arguments
+	}
+
+	// Visit the call expression, which should invoke handlePrintFunction and generate an error
+	err = analyzer.VisitCallExpr(emptyPrintCallExpr)
+	if err != nil {
+		t.Errorf("Print call analysis should handle error gracefully: %v", err)
+	}
+
+	// Verify an error was reported for empty arguments
+	if len(errorReporter.errors) == 0 {
+		t.Error("Expected error for print function with no arguments")
+	}
+
+	// Verify that the error message contains "requires at least one argument"
+	if len(errorReporter.errors) > 0 {
+		errorMsg := errorReporter.errors[0].Message
+		if !strings.Contains(errorMsg, "requires at least one argument") {
+			t.Errorf("Expected error message to contain 'requires at least one argument', got: %s", errorMsg)
+		}
+	}
+
+	// Verify type was set to TypeError
+	if emptyPrintCallExpr.GetType().String() == "void" {
+		t.Error("Print function with no arguments should not be typed as void (was invalid)")
+	}
+
+	t.Log("Print function error case (no arguments) successfully processed - handlePrintFunction error path exercised")
+}
+
+func TestAnalyzer_HandlePrintFunction_SingleArgument(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	analyzer.SetSymbolTable(symbolTable)
+
+	// Initialize builtin functions (which includes print)
+	err := analyzer.initializeBuiltinFunctions()
+	if err != nil {
+		t.Fatalf("Failed to initialize builtin functions: %v", err)
+	}
+
+	// Test print with string argument
+	printStringExpr := &domain.CallExpr{
+		Function: &domain.IdentifierExpr{Name: "print"},
+		Args: []domain.Expression{
+			&domain.LiteralExpr{Value: "test message"},
+		},
+	}
+
+	err = analyzer.VisitCallExpr(printStringExpr)
+	if err != nil {
+		t.Errorf("Print call with string argument should not fail: %v", err)
+	}
+
+	// Verify the correct type was assigned
+	if printStringExpr.GetType().String() != "void" {
+		t.Errorf("Print function should return void type, got %s", printStringExpr.GetType().String())
+	}
+
+	t.Log("Print function with single string argument successfully processed - handlePrintFunction single argument path exercised")
+}
+
+func TestAnalyzer_HandlePrintFunction_MultipleArguments(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	analyzer.SetSymbolTable(symbolTable)
+
+	// Initialize builtin functions (which includes print)
+	err := analyzer.initializeBuiltinFunctions()
+	if err != nil {
+		t.Fatalf("Failed to initialize builtin functions: %v", err)
+	}
+
+	// Test print with multiple arguments of different types
+	printMultiExpr := &domain.CallExpr{
+		Function: &domain.IdentifierExpr{Name: "print"},
+		Args: []domain.Expression{
+			&domain.LiteralExpr{Value: int64(123)},
+			&domain.LiteralExpr{Value: " + "},
+			&domain.LiteralExpr{Value: 4.56},
+			&domain.LiteralExpr{Value: true},
+		},
+	}
+
+	err = analyzer.VisitCallExpr(printMultiExpr)
+	if err != nil {
+		t.Errorf("Print call with multiple arguments should not fail: %v", err)
+	}
+
+	// Verify the correct type was assigned
+	if printMultiExpr.GetType().String() != "void" {
+		t.Errorf("Print function should return void type, got %s", printMultiExpr.GetType().String())
+	}
+
+	t.Log("Print function with multiple arguments successfully processed - handlePrintFunction multiple argument path exercised")
 }
