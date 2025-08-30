@@ -246,6 +246,130 @@ func TestErrorReporterSourceContext(t *testing.T) {
 	}
 }
 
+// TestConsoleErrorReporterReportWarning tests the specific ReportWarning method coverage
+func TestConsoleErrorReporterReportWarning(t *testing.T) {
+	reporter := NewConsoleErrorReporter(os.Stderr)
+
+	if reporter == nil {
+		t.Fatal("NewConsoleErrorReporter should return non-nil reporter")
+	}
+
+	// Test initial state
+	if reporter.HasWarnings() {
+		t.Error("New reporter should have no warnings")
+	}
+
+	// Create multiple test warnings to ensure ReportWarning is covered
+	testWarning1 := domain.CompilerError{
+		Type:    domain.LexicalError,
+		Message: "Test warning 1",
+		Location: domain.SourceRange{
+			Start: domain.SourcePosition{Filename: "test.sl", Line: 1, Column: 1},
+			End:   domain.SourcePosition{Filename: "test.sl", Line: 1, Column: 10},
+		},
+	}
+
+	testWarning2 := domain.CompilerError{
+		Type:    domain.TypeCheckError,
+		Message: "Test warning 2",
+		Location: domain.SourceRange{
+			Start: domain.SourcePosition{Filename: "test.sl", Line: 2, Column: 1},
+			End:   domain.SourcePosition{Filename: "test.sl", Line: 2, Column: 10},
+		},
+	}
+
+	// Report first warning
+	reporter.ReportWarning(testWarning1)
+
+	if !reporter.HasWarnings() {
+		t.Error("Reporter should have warnings after reporting")
+	}
+
+	// Report second warning
+	reporter.ReportWarning(testWarning2)
+
+	// Verify both warnings are stored
+	warnings := reporter.GetWarnings()
+	if len(warnings) != 2 {
+		t.Errorf("Expected 2 warnings, got %d", len(warnings))
+	}
+
+	if warnings[0].Message != "Test warning 1" {
+		t.Errorf("First warning message incorrect: got '%s'", warnings[0].Message)
+	}
+
+	if warnings[1].Message != "Test warning 2" {
+		t.Errorf("Second warning message incorrect: got '%s'", warnings[1].Message)
+	}
+}
+
+// TestSortedErrorReporterReportWarning tests the sorted reporter's ReportWarning method
+func TestSortedErrorReporterReportWarning(t *testing.T) {
+	baseReporter := NewConsoleErrorReporter(os.Stderr)
+	reporter := NewSortedErrorReporter(baseReporter)
+
+	if reporter == nil {
+		t.Fatal("NewSortedErrorReporter should return non-nil reporter")
+	}
+
+	// Test initial state for warnings
+	if reporter.HasWarnings() {
+		t.Error("New reporter should have no warnings")
+	}
+
+	// Create test warnings
+	testWarning1 := domain.CompilerError{
+		Type:    domain.LexicalError,
+		Message: "Warning A",
+		Location: domain.SourceRange{
+			Start: domain.SourcePosition{Filename: "test.sl", Line: 3, Column: 1},
+			End:   domain.SourcePosition{Filename: "test.sl", Line: 3, Column: 10},
+		},
+	}
+
+	testWarning2 := domain.CompilerError{
+		Type:    domain.TypeCheckError,
+		Message: "Warning B",
+		Location: domain.SourceRange{
+			Start: domain.SourcePosition{Filename: "test.sl", Line: 1, Column: 1},
+			End:   domain.SourcePosition{Filename: "test.sl", Line: 1, Column: 10},
+		},
+	}
+
+	// Report warnings in non-sorted order
+	reporter.ReportWarning(testWarning1)
+	reporter.ReportWarning(testWarning2)
+
+	// Test that warnings are present
+	if !reporter.HasWarnings() {
+		t.Error("Reporter should have warnings after reporting")
+	}
+
+	// Get warnings before flush
+	warnings := reporter.GetWarnings()
+	if len(warnings) != 2 {
+		t.Errorf("Expected 2 warnings, got %d", len(warnings))
+	}
+
+	// Test that warnings can be retrieved
+	if warnings[0].Message != "Warning A" {
+		t.Errorf("First warning message incorrect: got '%s'", warnings[0].Message)
+	}
+
+	if warnings[1].Message != "Warning B" {
+		t.Errorf("Second warning message incorrect: got '%s'", warnings[1].Message)
+	}
+
+	// Test flush functionality
+	reporter.Flush()
+
+	// After flush, check that warnings were transferred to underlying reporter
+	underlyingWarnings := baseReporter.GetWarnings()
+	if len(underlyingWarnings) != 2 {
+		t.Errorf("Expected underlying reporter to have 2 warnings after flush, got %d", len(underlyingWarnings))
+	}
+}
+
 // TestCompareSourceRanges tests source range comparison for sorting
 func TestCompareSourceRanges(t *testing.T) {
 	range1 := domain.SourceRange{
