@@ -1061,3 +1061,340 @@ func TestAnalyzer_InitializeBuiltinFunctions(t *testing.T) {
 		t.Error("print should be a function symbol")
 	}
 }
+
+// TestAnalyzer_NestedScopes tests nested scope handling
+func TestAnalyzer_NestedScopes(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Create nested scope structure
+	inner := &domain.BlockStmt{
+		Statements: []domain.Statement{
+			&domain.VarDeclStmt{
+				Name:        "inner_var",
+				Type_:       &domain.BasicType{Kind: domain.IntType},
+				Initializer: &domain.LiteralExpr{Value: int64(10)},
+			},
+		},
+	}
+
+	outer := &domain.BlockStmt{
+		Statements: []domain.Statement{
+			&domain.VarDeclStmt{
+				Name:        "outer_var",
+				Type_:       &domain.BasicType{Kind: domain.IntType},
+				Initializer: &domain.LiteralExpr{Value: int64(5)},
+			},
+			inner,
+		},
+	}
+
+	err := analyzer.VisitBlockStmt(outer)
+	if err != nil {
+		t.Errorf("Nested scopes should be handled correctly: %v", err)
+	}
+
+	if errorReporter.HasErrors() {
+		t.Error("Nested scopes should not produce errors")
+	}
+}
+
+// TestAnalyzer_TypeMismatchErrors tests various type mismatch scenarios
+func TestAnalyzer_TypeMismatchErrors(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Test int + string (should fail)
+	left := &domain.LiteralExpr{Value: int64(5)}
+	right := &domain.LiteralExpr{Value: "hello"}
+
+	binaryExpr := &domain.BinaryExpr{
+		Left:     left,
+		Operator: domain.Add,
+		Right:    right,
+	}
+
+	err := analyzer.VisitBinaryExpr(binaryExpr)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Adding int and string should produce an error")
+	}
+}
+
+// TestAnalyzer_UndefinedVariableError tests undefined variable detection
+func TestAnalyzer_UndefinedVariableError(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Try to use undefined variable
+	undefinedVar := &domain.IdentifierExpr{
+		Name: "undefined_var",
+	}
+
+	err := analyzer.VisitIdentifierExpr(undefinedVar)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Using undefined variable should produce an error")
+	}
+}
+
+// TestAnalyzer_ReturnTypeMismatch tests return type validation
+func TestAnalyzer_ReturnTypeMismatch(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Function declares int return type but returns string
+	funcDecl := &domain.FunctionDecl{
+		Name:       "testFunc",
+		Parameters: []domain.Parameter{},
+		ReturnType: &domain.BasicType{Kind: domain.IntType},
+		Body: &domain.BlockStmt{
+			Statements: []domain.Statement{
+				&domain.ReturnStmt{
+					Value: &domain.LiteralExpr{Value: "hello"},
+				},
+			},
+		},
+	}
+
+	// Set current function for context
+	analyzer.currentFunction = funcDecl
+
+	err := analyzer.VisitReturnStmt(funcDecl.Body.Statements[0].(*domain.ReturnStmt))
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Return type mismatch should produce an error")
+	}
+}
+
+// TestAnalyzer_VoidFunctionReturnValue tests void function returning value
+func TestAnalyzer_VoidFunctionReturnValue(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Void function trying to return a value
+	funcDecl := &domain.FunctionDecl{
+		Name:       "voidFunc",
+		Parameters: []domain.Parameter{},
+		ReturnType: &domain.BasicType{Kind: domain.VoidType},
+		Body: &domain.BlockStmt{
+			Statements: []domain.Statement{
+				&domain.ReturnStmt{
+					Value: &domain.LiteralExpr{Value: int64(42)},
+				},
+			},
+		},
+	}
+
+	// Set current function for context
+	analyzer.currentFunction = funcDecl
+
+	err := analyzer.VisitReturnStmt(funcDecl.Body.Statements[0].(*domain.ReturnStmt))
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Void function returning value should produce an error")
+	}
+}
+
+// TestAnalyzer_FunctionCallArgumentCount tests function call argument validation
+func TestAnalyzer_FunctionCallArgumentCount(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Declare a function that takes two parameters
+	funcType := &domain.FunctionType{
+		ParameterTypes: []domain.Type{
+			&domain.BasicType{Kind: domain.IntType},
+			&domain.BasicType{Kind: domain.IntType},
+		},
+		ReturnType: &domain.BasicType{Kind: domain.IntType},
+	}
+	symbolTable.DeclareSymbol("testFunc", funcType, interfaces.FunctionSymbol, domain.SourceRange{})
+
+	// Call function with wrong number of arguments
+	callExpr := &domain.CallExpr{
+		Function: &domain.IdentifierExpr{Name: "testFunc"},
+		Args: []domain.Expression{
+			&domain.LiteralExpr{Value: int64(1)}, // Only one argument, but function expects two
+		},
+	}
+
+	err := analyzer.VisitCallExpr(callExpr)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Function call with wrong argument count should produce an error")
+	}
+}
+
+// TestAnalyzer_ArrayIndexing tests array indexing validation
+func TestAnalyzer_ArrayIndexing(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Declare an array variable
+	arrayType := &domain.ArrayType{
+		ElementType: &domain.BasicType{Kind: domain.IntType},
+		Size:        10,
+	}
+	symbolTable.DeclareSymbol("arr", arrayType, interfaces.VariableSymbol, domain.SourceRange{})
+
+	// Test valid array indexing
+	validIndex := &domain.IndexExpr{
+		Object: &domain.IdentifierExpr{Name: "arr"},
+		Index:  &domain.LiteralExpr{Value: int64(0)},
+	}
+
+	err := analyzer.VisitIndexExpr(validIndex)
+	if err != nil {
+		t.Errorf("Valid array indexing should not produce error: %v", err)
+	}
+
+	// Test invalid index type (string instead of int)
+	invalidIndex := &domain.IndexExpr{
+		Object: &domain.IdentifierExpr{Name: "arr"},
+		Index:  &domain.LiteralExpr{Value: "hello"},
+	}
+
+	errorReporter.Clear() // Clear previous errors
+	err = analyzer.VisitIndexExpr(invalidIndex)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Array indexing with non-integer should produce an error")
+	}
+}
+
+// TestAnalyzer_StructMemberAccess tests struct member access validation
+func TestAnalyzer_StructMemberAccess(t *testing.T) {
+	// Skip this test as struct types are not fully implemented
+	t.Skip("Struct member access not fully implemented")
+}
+
+// TestAnalyzer_LoopConditionTypeValidation tests loop condition type checking
+func TestAnalyzer_LoopConditionTypeValidation(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Test while loop with valid boolean condition
+	validWhile := &domain.WhileStmt{
+		Condition: &domain.LiteralExpr{Value: true},
+		Body:      &domain.BlockStmt{Statements: []domain.Statement{}},
+	}
+
+	err := analyzer.VisitWhileStmt(validWhile)
+	if err != nil {
+		t.Errorf("While loop with boolean condition should not produce error: %v", err)
+	}
+
+	// Test while loop with invalid condition type
+	invalidWhile := &domain.WhileStmt{
+		Condition: &domain.LiteralExpr{Value: int64(5)}, // Integer instead of boolean
+		Body:      &domain.BlockStmt{Statements: []domain.Statement{}},
+	}
+
+	errorReporter.Clear() // Clear previous errors
+	err = analyzer.VisitWhileStmt(invalidWhile)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("While loop with non-boolean condition should produce an error")
+	}
+}
+
+// TestAnalyzer_UnaryExpressionTypeValidation tests unary expression type checking
+func TestAnalyzer_UnaryExpressionTypeValidation(t *testing.T) {
+	analyzer := NewAnalyzer()
+	symbolTable := infrastructure.NewSymbolTable()
+	typeRegistry := domain.NewTypeRegistry()
+	errorReporter := &MockErrorReporter{}
+
+	analyzer.SetSymbolTable(symbolTable)
+	analyzer.SetTypeRegistry(typeRegistry)
+	analyzer.SetErrorReporter(errorReporter)
+
+	// Test valid negation of integer
+	validNeg := &domain.UnaryExpr{
+		Operator: domain.Neg,
+		Operand:  &domain.LiteralExpr{Value: int64(5)},
+	}
+
+	err := analyzer.VisitUnaryExpr(validNeg)
+	if err != nil {
+		t.Errorf("Negation of integer should not produce error: %v", err)
+	}
+
+	// Test invalid negation of string
+	invalidNeg := &domain.UnaryExpr{
+		Operator: domain.Neg,
+		Operand:  &domain.LiteralExpr{Value: "hello"},
+	}
+
+	errorReporter.Clear() // Clear previous errors
+	err = analyzer.VisitUnaryExpr(invalidNeg)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Negation of string should produce an error")
+	}
+
+	// Test valid logical NOT of boolean
+	validNot := &domain.UnaryExpr{
+		Operator: domain.Not,
+		Operand:  &domain.LiteralExpr{Value: true},
+	}
+
+	errorReporter.Clear() // Clear previous errors
+	err = analyzer.VisitUnaryExpr(validNot)
+	if err != nil {
+		t.Errorf("Logical NOT of boolean should not produce error: %v", err)
+	}
+
+	// Test invalid logical NOT of integer
+	invalidNot := &domain.UnaryExpr{
+		Operator: domain.Not,
+		Operand:  &domain.LiteralExpr{Value: int64(5)},
+	}
+
+	errorReporter.Clear() // Clear previous errors
+	err = analyzer.VisitUnaryExpr(invalidNot)
+	if err == nil && !errorReporter.HasErrors() {
+		t.Error("Logical NOT of integer should produce an error")
+	}
+}
