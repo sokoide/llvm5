@@ -1,6 +1,7 @@
 package grammar
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -436,4 +437,111 @@ func TestParserLex_DefaultCases(t *testing.T) {
 
 	// We expect a parsing error due to the invalid token, but the Lex method should handle it
 	t.Log("Default case coverage test completed - attempted to exercise unknown token handling")
+}
+
+// MockLexer for testing the Lex method
+type MockLexer struct {
+	tokens []interfaces.Token
+	index  int
+}
+
+func (m *MockLexer) SetInput(filename string, reader io.Reader) error {
+	return nil // Not needed for this test
+}
+
+func (m *MockLexer) NextToken() interfaces.Token {
+	if m.index < len(m.tokens) {
+		token := m.tokens[m.index]
+		m.index++
+		return token
+	}
+	return interfaces.Token{Type: interfaces.TokenEOF}
+}
+
+func (m *MockLexer) Peek() interfaces.Token {
+	if m.index < len(m.tokens) {
+		return m.tokens[m.index]
+	}
+	return interfaces.Token{Type: interfaces.TokenEOF}
+}
+
+func (m *MockLexer) GetErrors() []domain.CompilerError {
+	return nil // Not needed for this test
+}
+
+func (m *MockLexer) HasErrors() bool {
+	return false // Not needed for this test
+}
+
+func (m *MockLexer) GetCurrentPosition() domain.SourcePosition {
+	return domain.SourcePosition{} // Dummy implementation
+}
+
+// TestParserLex_TokenMapping tests the mapping of interfaces.TokenType to parser token constants
+func TestParserLex_TokenMapping(t *testing.T) {
+	testCases := []struct {
+		tokenType interfaces.TokenType
+		expected  int
+		name      string
+	}{
+		{interfaces.TokenInt, INT, "INT"},
+		{interfaces.TokenFloat, FLOAT, "FLOAT"},
+		{interfaces.TokenString, STRING, "STRING"},
+		{interfaces.TokenBool, IDENTIFIER, "BOOL"}, // TokenBool maps to IDENTIFIER
+		{interfaces.TokenIdentifier, IDENTIFIER, "IDENTIFIER"},
+		{interfaces.TokenFunc, FUNC, "FUNC"},
+		{interfaces.TokenStruct, STRUCT, "STRUCT"},
+		{interfaces.TokenVar, VAR, "VAR"},
+		{interfaces.TokenIf, IF, "IF"},
+		{interfaces.TokenElse, ELSE, "ELSE"},
+		{interfaces.TokenWhile, WHILE, "WHILE"},
+		{interfaces.TokenFor, FOR, "FOR"},
+		{interfaces.TokenReturn, RETURN, "RETURN"},
+		{interfaces.TokenTrue, TRUE, "TRUE"},
+		{interfaces.TokenFalse, FALSE, "FALSE"},
+		{interfaces.TokenPlus, PLUS, "PLUS"},
+		{interfaces.TokenMinus, MINUS, "MINUS"},
+		{interfaces.TokenStar, STAR, "STAR"},
+		{interfaces.TokenSlash, SLASH, "SLASH"},
+		{interfaces.TokenPercent, PERCENT, "PERCENT"},
+		{interfaces.TokenEqual, EQUAL, "EQUAL"},
+		{interfaces.TokenNotEqual, NOT_EQUAL, "NOT_EQUAL"},
+		{interfaces.TokenLess, LESS, "LESS"},
+		{interfaces.TokenLessEqual, LESS_EQUAL, "LESS_EQUAL"},
+		{interfaces.TokenGreater, GREATER, "GREATER"},
+		{interfaces.TokenGreaterEqual, GREATER_EQUAL, "GREATER_EQUAL"},
+		{interfaces.TokenAnd, AND, "AND"},
+		{interfaces.TokenOr, OR, "OR"},
+		{interfaces.TokenNot, NOT, "NOT"},
+		{interfaces.TokenAssign, ASSIGN, "ASSIGN"},
+		{interfaces.TokenLeftParen, LEFT_PAREN, "LEFT_PAREN"},
+		{interfaces.TokenRightParen, RIGHT_PAREN, "RIGHT_PAREN"},
+		{interfaces.TokenLeftBrace, LEFT_BRACE, "LEFT_BRACE"},
+		{interfaces.TokenRightBrace, RIGHT_BRACE, "RIGHT_BRACE"},
+		{interfaces.TokenLeftBracket, LEFT_BRACKET, "LEFT_BRACKET"},
+		{interfaces.TokenRightBracket, RIGHT_BRACKET, "RIGHT_BRACKET"},
+		{interfaces.TokenSemicolon, SEMICOLON, "SEMICOLON"},
+		{interfaces.TokenComma, COMMA, "COMMA"},
+		{interfaces.TokenDot, DOT, "DOT"},
+		{interfaces.TokenColon, COLON, "COLON"},
+		{interfaces.TokenArrow, ARROW, "ARROW"},
+		{interfaces.TokenEOF, 0, "EOF"}, // EOF maps to 0
+		// Add a case for an unknown token type to hit the default case in Lex
+		{interfaces.TokenType(999), 0, "UNKNOWN"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockLexer := &MockLexer{
+				tokens: []interfaces.Token{{Type: tc.tokenType}},
+			}
+			parser := &Parser{lexer: mockLexer}
+			var lval yySymType
+			result := parser.Lex(&lval)
+
+			if result != tc.expected {
+				t.Errorf("For token type %v, expected %d, got %d", tc.tokenType, tc.expected, result)
+			}
+		})
+	}
 }
