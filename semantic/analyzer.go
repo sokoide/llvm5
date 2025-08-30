@@ -10,10 +10,11 @@ import (
 
 // Analyzer implements the SemanticAnalyzer interface
 type Analyzer struct {
-	typeRegistry    domain.TypeRegistry
-	symbolTable     interfaces.SymbolTable
-	errorReporter   domain.ErrorReporter
-	currentFunction *domain.FunctionDecl
+	typeRegistry         domain.TypeRegistry
+	symbolTable          interfaces.SymbolTable
+	errorReporter        domain.ErrorReporter
+	currentFunction      *domain.FunctionDecl
+	builtinsInitialized bool
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -26,8 +27,11 @@ func NewAnalyzer() *Analyzer {
 // Analyze performs semantic analysis on the AST
 func (a *Analyzer) Analyze(ast *domain.Program) error {
 	// Initialize builtin functions first
-	if err := a.initializeBuiltinFunctions(); err != nil {
-		return err
+	if !a.builtinsInitialized {
+		if err := a.initializeBuiltinFunctions(); err != nil {
+			return err
+		}
+		a.builtinsInitialized = true
 	}
 
 	// First pass: collect all function and struct declarations
