@@ -229,3 +229,37 @@ func TestReleaseStringEdgeCases(t *testing.T) {
 
 	t.Log("ReleaseString edge cases successfully tested")
 }
+
+// TestMemoryManagerGetPoolStatsAddress tests GetPoolStats method coverage
+func TestMemoryManagerGetPoolStats(t *testing.T) {
+	manager := NewPooledMemoryManager()
+	if manager == nil {
+		t.Fatal("NewPooledMemoryManager should return non-nil manager")
+	}
+
+	// Test GetPoolStats on empty manager
+	stats := manager.GetPoolStats()
+	if stats == nil {
+		t.Error("GetPoolStats should return non-nil map")
+	}
+
+	// Test after allocating some memory
+	_, err := manager.AllocateNode("test_node_type", 64)
+	if err != nil {
+		t.Errorf("AllocateNode should not fail: %v", err)
+	}
+
+	_, err = manager.AllocateString("test_string")
+	if err != nil {
+		t.Errorf("AllocateString should not fail: %v", err)
+	}
+
+	// Test GetPoolStats after allocations
+	postStats := manager.GetPoolStats()
+	if postStats == nil {
+		t.Error("GetPoolStats after allocations should return non-nil map")
+	}
+
+	// The map should be mutable but our test just verifies it's callable
+	t.Log("GetPoolStats method successfully exercised for coverage")
+}

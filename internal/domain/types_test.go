@@ -334,3 +334,193 @@ func TestErrorType(t *testing.T) {
 		t.Error("Error type should not be assignable from int type")
 	}
 }
+func TestSourcePositionStringMethod(t *testing.T) {
+	t.Run("Standard position", func(t *testing.T) {
+		pos := SourcePosition{
+			Filename: "main.go",
+			Line:      42,
+			Column:   10,
+			Offset:   256,
+		}
+		expected := "main.go:42:10"
+		result := pos.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	t.Run("Zero values", func(t *testing.T) {
+		pos := SourcePosition{}
+		expected := ":0:0"
+		result := pos.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	t.Run("Large values", func(t *testing.T) {
+		pos := SourcePosition{
+			Filename: "very/long/path/to/file.c",
+			Line:      12345,
+			Column:   678,
+			Offset:   99999,
+		}
+		expected := "very/long/path/to/file.c:12345:678"
+		result := pos.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+}
+
+func TestSourceRangeStringMethod(t *testing.T) {
+	// Test case 1: Same filename, same line (column range)
+	t.Run("Same file and line", func(t *testing.T) {
+		r := SourceRange{
+			Start: SourcePosition{Filename: "test.go", Line: 5, Column: 10, Offset: 50},
+			End:   SourcePosition{Filename: "test.go", Line: 5, Column: 20, Offset: 60},
+		}
+		expected := "test.go:5:10-20"
+		result := r.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	// Test case 2: Same filename, different lines
+	t.Run("Same file different lines", func(t *testing.T) {
+		r := SourceRange{
+			Start: SourcePosition{Filename: "test.go", Line: 5, Column: 10, Offset: 50},
+			End:   SourcePosition{Filename: "test.go", Line: 8, Column: 5, Offset: 80},
+		}
+		expected := "test.go:5:10-8:5"
+		result := r.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	// Test case 3: Different filenames
+	t.Run("Different files", func(t *testing.T) {
+		r := SourceRange{
+			Start: SourcePosition{Filename: "file1.go", Line: 5, Column: 10, Offset: 50},
+			End:   SourcePosition{Filename: "file2.go", Line: 8, Column: 5, Offset: 80},
+		}
+		expected := "file1.go:5:10-file2.go:8:5"
+		result := r.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	// Test case 4: Zero values (both positions identical)
+	t.Run("Zero values", func(t *testing.T) {
+		r := SourceRange{}
+		expected := ":0:0-0"
+		result := r.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	// Test case 5: Same line, different columns
+	t.Run("Same line different columns", func(t *testing.T) {
+		r := SourceRange{
+			Start: SourcePosition{Filename: "test.go", Line: 5, Column: 10, Offset: 50},
+			End:   SourcePosition{Filename: "test.go", Line: 5, Column: 20, Offset: 60},
+		}
+		expected := "test.go:5:10-20"
+		result := r.String()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+}
+
+func TestCompilerErrorErrorMethod(t *testing.T) {
+	t.Run("Standard error", func(t *testing.T) {
+		location := SourceRange{
+			Start: SourcePosition{Filename: "main.go", Line: 42, Column: 10},
+			End:   SourcePosition{Filename: "main.go", Line: 42, Column: 15},
+		}
+		err := CompilerError{
+			Type:     LexicalError,
+			Message:  "invalid token 'x'",
+			Location: location,
+			Context:  "some context",
+		}
+		expected := "Lexical Error: invalid token 'x' at main.go:42:10-15"
+		result := err.Error()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	t.Run("Minimal error", func(t *testing.T) {
+		location := SourceRange{
+			Start: SourcePosition{Filename: "", Line: 0, Column: 0},
+			End:   SourcePosition{Filename: "", Line: 0, Column: 0},
+		}
+		err := CompilerError{
+			Type:     SyntaxError,
+			Message:  "parse error",
+			Location: location,
+		}
+		expected := "Syntax Error: parse error at :0:0-0"
+		result := err.Error()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+
+	t.Run("Complex error", func(t *testing.T) {
+		location := SourceRange{
+			Start: SourcePosition{Filename: "src/parser.y", Line: 123, Column: 45},
+			End:   SourcePosition{Filename: "src/parser.y", Line: 130, Column: 1},
+		}
+		err := CompilerError{
+			Type:     SemanticError,
+			Message:  "undefined function 'foo'",
+			Location: location,
+			Context:  "in main block",
+			Hints:    []string{"Did you mean 'bar'?", "Check if function exists"},
+		}
+		expected := "Semantic Error: undefined function 'foo' at src/parser.y:123:45-130:1"
+		result := err.Error()
+		if result != expected {
+			t.Errorf("Expected %q, got %q", expected, result)
+		}
+	})
+}
+
+func TestErrorTypeStringMethod(t *testing.T) {
+	testCases := []struct {
+		errorType ErrorType
+		expected  string
+	}{
+		{LexicalError, "Lexical Error"},
+		{SyntaxError, "Syntax Error"},
+		{SemanticError, "Semantic Error"},
+		{TypeCheckError, "Type Error"},
+		{CodeGenError, "Code Generation Error"},
+		{InternalError, "Internal Error"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expected, func(t *testing.T) {
+			result := tc.errorType.String()
+			if result != tc.expected {
+				t.Errorf("Expected %q, got %q", tc.expected, result)
+			}
+		})
+	}
+
+	t.Run("Unknown error type", func(t *testing.T) {
+		// Test a value outside the defined enum
+		unknown := ErrorType(999)
+		result := unknown.String()
+		if result != "Unknown Error" {
+			t.Errorf("Expected %q for unknown error type, got %q", "Unknown Error", result)
+		}
+	})
+}
