@@ -120,7 +120,32 @@ type StructType struct {
 }
 
 func (st *StructType) String() string {
-	return st.Name
+	if st.Name != "" {
+		return st.Name
+	}
+
+	// If no name, show field details
+	if len(st.Fields) == 0 {
+		return "struct{}"
+	}
+
+	// Use Order slice if populated, otherwise use field map keys (order not guaranteed)
+	var fieldNames []string
+	if len(st.Order) > 0 {
+		fieldNames = st.Order
+	} else {
+		for fieldName := range st.Fields {
+			fieldNames = append(fieldNames, fieldName)
+		}
+	}
+
+	fields := make([]string, len(fieldNames))
+	for i, fieldName := range fieldNames {
+		fieldType := st.Fields[fieldName]
+		fields[i] = fieldName + " " + fieldType.String()
+	}
+
+	return "struct{" + strings.Join(fields, ", ") + "}"
 }
 
 func (st *StructType) Equals(other Type) bool {
@@ -191,7 +216,7 @@ type TypeError struct {
 }
 
 func (et *TypeError) String() string {
-	return fmt.Sprintf("error<%s>", et.Message)
+	return fmt.Sprintf("<error: %s>", et.Message)
 }
 
 func (et *TypeError) Equals(other Type) bool {

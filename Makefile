@@ -27,7 +27,7 @@ CFLAGS=-O2 -Wall -Wextra
 LDFLAGS=-ldflags "-X main.Version=$(shell git describe --tags --always --dirty 2>/dev/null || echo 'dev') -X main.BuildDate=$(shell date -u '+%Y-%m-%d_%H:%M:%S')"
 
 # Default target
-all: fmt vet test-with-coverage build
+all: fmt vet test-with-coverage build-with-runtime
 
 # Build the compiler
 build:

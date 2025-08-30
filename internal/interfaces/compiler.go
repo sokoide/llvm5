@@ -67,9 +67,103 @@ const (
 	TokenArrow
 
 	// Special
-	TokenEOF
-	TokenError
-)
+		TokenEOF
+		TokenError
+	)
+
+	// String returns the string representation of the token type
+	func (tt TokenType) String() string {
+		switch tt {
+		case TokenEOF:
+			return "EOF"
+		case TokenError:
+			return "Error"
+		case TokenIdentifier:
+			return "Identifier"
+		case TokenInt:
+			return "Int"
+		case TokenFloat:
+			return "Float"
+		case TokenString:
+			return "String"
+		case TokenBool:
+			return "Bool"
+		case TokenTrue:
+			return "True"
+		case TokenFalse:
+			return "False"
+		case TokenFunc:
+			return "Func"
+		case TokenStruct:
+			return "Struct"
+		case TokenVar:
+			return "Var"
+		case TokenIf:
+			return "If"
+		case TokenElse:
+			return "Else"
+		case TokenWhile:
+			return "While"
+		case TokenFor:
+			return "For"
+		case TokenReturn:
+			return "Return"
+		case TokenPlus:
+			return "Plus"
+		case TokenMinus:
+			return "Minus"
+		case TokenStar:
+			return "Star"
+		case TokenSlash:
+			return "Slash"
+		case TokenPercent:
+			return "Percent"
+		case TokenEqual:
+			return "Equal"
+		case TokenNotEqual:
+			return "NotEqual"
+		case TokenLess:
+			return "Less"
+		case TokenLessEqual:
+			return "LessEqual"
+		case TokenGreater:
+			return "Greater"
+		case TokenGreaterEqual:
+			return "GreaterEqual"
+		case TokenAnd:
+			return "And"
+		case TokenOr:
+			return "Or"
+		case TokenNot:
+			return "Not"
+		case TokenAssign:
+			return "Assign"
+		case TokenLeftParen:
+			return "LeftParen"
+		case TokenRightParen:
+			return "RightParen"
+		case TokenLeftBrace:
+			return "LeftBrace"
+		case TokenRightBrace:
+			return "RightBrace"
+		case TokenLeftBracket:
+			return "LeftBracket"
+		case TokenRightBracket:
+			return "RightBracket"
+		case TokenSemicolon:
+			return "Semicolon"
+		case TokenComma:
+			return "Comma"
+		case TokenDot:
+			return "Dot"
+		case TokenArrow:
+			return "Arrow"
+		case TokenColon:
+			return "Colon"
+		default:
+			return "Unknown"
+		}
+	}
 
 // Lexer interface defines the lexical analyzer
 type Lexer interface {
